@@ -1,23 +1,33 @@
 import BookingForm from "@/components/BookingForm"
-import { FlaskConical } from "lucide-react"
+import { FlaskConical, LogIn } from "lucide-react"
+import Link from "next/link"
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
       {/* Top header bar */}
       <header className="bg-[var(--ssa-navy)] text-white py-4 px-4">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--ssa-blue)]">
-            <FlaskConical size={20} className="text-white" />
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--ssa-blue)]">
+              <FlaskConical size={20} className="text-white" />
+            </div>
+            <div>
+              <p className="text-xs text-white/60 uppercase tracking-widest font-medium">
+                Science Students Association
+              </p>
+              <h1 className="text-base font-bold text-white leading-tight">
+                Study Room Booking
+              </h1>
+            </div>
           </div>
-          <div>
-            <p className="text-xs text-white/60 uppercase tracking-widest font-medium">
-              Science Students Association
-            </p>
-            <h1 className="text-base font-bold text-white leading-tight">
-              Study Room Booking
-            </h1>
-          </div>
+          <Link
+            href="/staff"
+            className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            <LogIn size={16} />
+            <span className="hidden sm:inline">Staff Login</span>
+          </Link>
         </div>
       </header>
 
@@ -25,7 +35,7 @@ export default function Home() {
       <div className="bg-[var(--ssa-blue)] text-white py-3 px-4">
         <div className="max-w-lg mx-auto">
           <p className="text-sm text-white/90 leading-relaxed">
-            Reserve the SSA study room for up to <strong>1 hour per day</strong>. Weekdays only.
+            Reserve the SSA study room for up to <strong>1 hour per day</strong>. Weekdays only, 8:30 AM - 4:30 PM. Book up to 1 week ahead.
           </p>
         </div>
       </div>

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { format, addDays, isBefore, startOfDay, isWeekend } from "date-fns"
+import { format, addDays, isBefore, startOfDay, isWeekend, isAfter } from "date-fns"
+import { MAX_BOOKING_DAYS_AHEAD } from "@/lib/types"
 import {
   Calendar,
   Clock,
@@ -143,7 +144,7 @@ export default function BookingForm() {
 
   const daysInMonth = getDaysInMonth(viewYear, viewMonth)
   const firstDay = getFirstDayOfMonth(viewYear, viewMonth)
-  const maxDate = addDays(today, 60)
+  const maxDate = addDays(today, MAX_BOOKING_DAYS_AHEAD)
 
   return (
     <div className="space-y-6">
@@ -204,7 +205,7 @@ export default function BookingForm() {
               {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
                 const date = new Date(viewYear, viewMonth, day)
                 const isPast = isBefore(date, today)
-                const isFutureTooFar = isBefore(maxDate, date)
+                const isFutureTooFar = isAfter(date, maxDate)
                 const isWknd = isWeekend(date)
                 const isDisabled = isPast || isFutureTooFar || isWknd
                 const isSelected =
@@ -248,7 +249,7 @@ export default function BookingForm() {
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            Weekdays only &bull; Bookings available up to 60 days in advance
+            Weekdays only &bull; Bookings available up to 1 week in advance &bull; Hours: 8:30 AM - 4:30 PM
           </p>
         </section>
 

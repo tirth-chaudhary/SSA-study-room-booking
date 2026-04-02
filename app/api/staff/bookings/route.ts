@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const password = searchParams.get("password")
 
-  if (password !== (process.env.STAFF_PASSWORD || "ssa-staff-2024")) {
+  if (password !== (process.env.STAFF_PASSWORD || "SSA2025")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -29,7 +29,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const { password, id, ...updates } = body
 
-  if (password !== (process.env.STAFF_PASSWORD || "ssa-staff-2024")) {
+  if (password !== (process.env.STAFF_PASSWORD || "SSA2025")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -53,7 +53,7 @@ export async function DELETE(req: NextRequest) {
   const body = await req.json()
   const { password, id } = body
 
-  if (password !== (process.env.STAFF_PASSWORD || "ssa-staff-2024")) {
+  if (password !== (process.env.STAFF_PASSWORD || "SSA2025")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

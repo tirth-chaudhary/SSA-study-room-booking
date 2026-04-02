@@ -14,20 +14,19 @@ export interface Booking {
   created_at: string
 }
 
+// Working hours: 8:30 AM - 4:30 PM, last slot at 3:30 PM (1 hour duration)
 export const TIME_SLOTS = [
-  "8:00 AM",
-  "9:00 AM",
-  "10:00 AM",
-  "11:00 AM",
-  "12:00 PM",
-  "1:00 PM",
-  "2:00 PM",
-  "3:00 PM",
-  "4:00 PM",
-  "5:00 PM",
-  "6:00 PM",
-  "7:00 PM",
-  "8:00 PM",
+  "8:30 AM",
+  "9:30 AM",
+  "10:30 AM",
+  "11:30 AM",
+  "12:30 PM",
+  "1:30 PM",
+  "2:30 PM",
+  "3:30 PM",
 ]
 
-export const STAFF_PASSWORD = process.env.STAFF_PASSWORD || "ssa-staff-2024"
+export const STAFF_PASSWORD = process.env.STAFF_PASSWORD || "SSA2025"
+
+// Max booking window: 7 days in advance
+export const MAX_BOOKING_DAYS_AHEAD = 7
