@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
           Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: process.env.RESEND_FROM_EMAIL || "SSA Study Room <noreply@yourdomain.com>",
+          from: process.env.RESEND_FROM_EMAIL || "SSA Study Room <onboarding@resend.dev>",
           to: student_email,
           subject: `Booking Confirmed – SSA Study Room on ${booking_date} at ${time_slot}`,
           html: buildConfirmationEmail({
