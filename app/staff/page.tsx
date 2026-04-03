@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { FlaskConical, Lock, Eye, EyeOff, AlertTriangle } from "lucide-react"
+import { Lock, Eye, EyeOff, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import StaffDashboard from "@/components/StaffDashboard"
+import Image from "next/image"
+import Link from "next/link"
 
 export default function StaffPage() {
   const [password, setPassword] = useState("")
@@ -18,9 +20,7 @@ export default function StaffPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const res = await fetch(
-      `/api/staff/bookings?password=${encodeURIComponent(password)}`
-    )
+    const res = await fetch(`/api/staff/bookings?password=${encodeURIComponent(password)}`)
     setLoading(false)
     if (res.ok) {
       setAuthed(true)
@@ -42,92 +42,106 @@ export default function StaffPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background flex flex-col">
-      <header className="bg-[var(--ssa-navy)] text-white py-4 px-4">
-        <div className="max-w-md mx-auto flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--ssa-blue)]">
-            <FlaskConical size={20} className="text-white" />
+    <main className="min-h-screen flex flex-col font-sans" style={{ background: "linear-gradient(160deg, #e8f0fb 0%, #f4f7fb 60%, #fff9ed 100%)" }}>
+      {/* Header */}
+      <header className="text-white shadow-md" style={{ background: "#1e63ad" }}>
+        <div style={{ background: "#fbb315", height: "4px" }} />
+        <div className="max-w-md mx-auto flex items-center gap-3 px-5 py-3">
+          <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0">
+            <Image src="/images/ssa-logo.png" alt="SSA Logo" width={32} height={32} className="object-contain" />
           </div>
           <div>
-            <p className="text-xs text-white/60 uppercase tracking-widest font-medium">
-              Science Students Association
+            <p className="text-[10px] text-white/60 uppercase tracking-[0.18em] font-semibold leading-none">
+              Science Students&apos; Association
             </p>
-            <h1 className="text-base font-bold text-white leading-tight">
-              Staff Portal
-            </h1>
+            <h1 className="text-sm font-bold text-white leading-tight">Staff Portal</h1>
           </div>
         </div>
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm">
+          {/* Logo + title */}
           <div className="text-center mb-7">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-              <Lock size={24} className="text-primary" />
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+              style={{ background: "linear-gradient(135deg, #1e63ad 0%, #2d7dd2 100%)" }}
+            >
+              <Lock size={26} className="text-white" />
             </div>
-            <h2 className="text-xl font-bold text-foreground">Staff Login</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Enter your staff password to access the booking dashboard.
+            <h2 className="text-2xl font-bold" style={{ color: "#0f1f3d" }}>Staff Login</h2>
+            <p className="text-sm mt-1" style={{ color: "#5a7299" }}>
+              Enter your staff password to access the dashboard.
             </p>
           </div>
 
-          <form
-            onSubmit={handleLogin}
-            className="bg-card rounded-2xl border border-border shadow-sm p-6 space-y-4"
-          >
-            <div>
-              <Label htmlFor="password" className="text-sm font-medium mb-1.5 block">
-                Staff Password
-              </Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPw ? "text" : "password"}
-                  required
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  onClick={() => setShowPw((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
+          {/* Card */}
+          <div className="bg-white rounded-2xl border shadow-xl p-6 space-y-4" style={{ borderColor: "#d0ddf0" }}>
+            {/* Gold top stripe */}
+            <div className="flex items-center gap-2 pb-3 border-b" style={{ borderColor: "#e8f0fb" }}>
+              <Image src="/images/ssa-logo.png" alt="SSA" width={20} height={20} className="opacity-60" />
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#5a7299" }}>
+                SSA Booking System
+              </span>
             </div>
 
-            {error && (
-              <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/30 px-3 py-2">
-                <AlertTriangle size={13} className="text-destructive shrink-0" />
-                <p className="text-xs text-destructive">{error}</p>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Label htmlFor="password" className="text-sm font-semibold mb-1.5 block" style={{ color: "#0f1f3d" }}>
+                  Staff Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPw ? "text" : "password"}
+                    required
+                    placeholder="Enter password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pr-10 border-[#d0ddf0] focus:border-[#1e63ad]"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPw((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                    style={{ color: "#5a7299" }}
+                  >
+                    {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
               </div>
-            )}
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold"
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                  Signing in...
-                </span>
-              ) : (
-                "Sign In"
+              {error && (
+                <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: "#fef2f2", border: "1px solid #fca5a5" }}>
+                  <AlertTriangle size={13} className="text-red-500 shrink-0" />
+                  <p className="text-xs text-red-600">{error}</p>
+                </div>
               )}
-            </Button>
-          </form>
 
-          <p className="text-center text-xs text-muted-foreground mt-5">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full font-bold h-11 text-white shadow-md hover:opacity-90 transition-opacity"
+                style={{ background: "#1e63ad" }}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                    Signing in...
+                  </span>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
+          </div>
+
+          <p className="text-center text-xs mt-5" style={{ color: "#5a7299" }}>
             Not staff?{" "}
-            <a href="/" className="text-accent hover:underline font-medium">
+            <Link href="/" className="font-semibold hover:underline" style={{ color: "#1e63ad" }}>
               Go to booking page
-            </a>
+            </Link>
           </p>
         </div>
       </div>

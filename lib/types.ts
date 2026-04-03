@@ -2,6 +2,7 @@ export type BookingStatus = "confirmed" | "cancelled"
 
 export interface Booking {
   id: string
+  booking_number: number
   student_name: string
   student_number: string
   student_email: string

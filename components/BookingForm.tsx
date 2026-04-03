@@ -144,6 +144,7 @@ export default function BookingForm() {
       <BookingConfirmation
         booking={confirmedBooking as {
           id: string
+          booking_number?: number
           student_name: string
           student_email: string
           booking_date: string
@@ -172,9 +173,12 @@ export default function BookingForm() {
   return (
     <div className="space-y-6">
       {/* Notice banner */}
-      <div className="flex items-start gap-3 bg-[var(--ssa-gold)]/15 border border-[var(--ssa-gold)]/40 rounded-lg px-4 py-3">
-        <AlertTriangle className="text-amber-600 mt-0.5 shrink-0" size={16} />
-        <p className="text-sm text-amber-800 leading-relaxed">
+      <div
+        className="flex items-start gap-3 rounded-xl px-4 py-3"
+        style={{ background: "#fffbea", border: "1px solid #fbb315" }}
+      >
+        <AlertTriangle className="mt-0.5 shrink-0" size={16} style={{ color: "#d9970c" }} />
+        <p className="text-sm leading-relaxed" style={{ color: "#7a5000" }}>
           <strong>Reminder:</strong> Please do not leave a key inside the office &mdash; you may get locked out.
         </p>
       </div>
@@ -188,7 +192,10 @@ export default function BookingForm() {
           </h2>
           <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
             {/* Calendar header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-primary text-primary-foreground">
+            <div
+              className="flex items-center justify-between px-4 py-3 text-white"
+              style={{ background: "#1e63ad" }}
+            >
               <button
                 type="button"
                 onClick={handlePrevMonth}
@@ -246,17 +253,24 @@ export default function BookingForm() {
                     key={day}
                     type="button"
                     onClick={() => !isDisabled && handleDayClick(day)}
-                    disabled={isDisabled}
+                    disabled={isDisabled === true}
                     className={cn(
                       "aspect-square flex items-center justify-center text-sm rounded-lg font-medium transition-all",
                       isSelected
-                        ? "bg-accent text-accent-foreground shadow-md scale-105"
+                        ? "text-white shadow-md scale-105"
                         : isToday && !isDisabled
-                        ? "border-2 border-accent text-accent"
+                        ? "border-2 font-bold"
                         : isDisabled
                         ? "text-muted-foreground/40 cursor-not-allowed"
-                        : "hover:bg-secondary text-foreground cursor-pointer"
+                        : "hover:bg-[#e8f0fb] text-foreground cursor-pointer"
                     )}
+                    style={
+                      isSelected
+                        ? { background: "#1e63ad" }
+                        : isToday && !isDisabled
+                        ? { borderColor: "#1e63ad", color: "#1e63ad" }
+                        : {}
+                    }
                   >
                     {day}
                   </button>
@@ -265,7 +279,7 @@ export default function BookingForm() {
             </div>
             {selectedDate && (
               <div className="px-4 pb-3 text-center">
-                <span className="text-sm font-medium text-accent">
+                <span className="text-sm font-semibold" style={{ color: "#1e63ad" }}>
                   Selected: {format(selectedDate, "EEEE, MMMM d, yyyy")}
                 </span>
               </div>
@@ -311,9 +325,10 @@ export default function BookingForm() {
                     className={cn(
                       "py-2 px-1 text-sm rounded-lg border font-medium transition-all",
                       selectedSlot === slot
-                        ? "bg-accent text-accent-foreground border-accent shadow-md scale-105"
-                        : "bg-card border-border text-foreground hover:border-accent hover:bg-secondary"
+                        ? "text-white border-transparent shadow-md scale-105"
+                        : "bg-white border-[#d0ddf0] text-foreground hover:border-[#1e63ad] hover:bg-[#e8f0fb]"
                     )}
+                    style={selectedSlot === slot ? { background: "#1e63ad", borderColor: "#1e63ad" } : {}}
                   >
                     {slot}
                   </button>
@@ -413,16 +428,19 @@ export default function BookingForm() {
             )}
 
             {/* Booking summary */}
-            <div className="rounded-lg bg-[var(--ssa-light-blue)] border border-accent/20 p-4 space-y-1.5">
-              <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">
+            <div
+              className="rounded-xl p-4 space-y-1.5"
+              style={{ background: "#e8f0fb", border: "1px solid #c2d5f0" }}
+            >
+              <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "#1e63ad" }}>
                 Booking Summary
               </p>
               <div className="flex items-center gap-2 text-sm text-foreground">
-                <Calendar size={13} className="text-accent shrink-0" />
+                <Calendar size={13} style={{ color: "#1e63ad" }} className="shrink-0" />
                 <span>{format(selectedDate, "EEEE, MMMM d, yyyy")}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-foreground">
-                <Clock size={13} className="text-accent shrink-0" />
+                <Clock size={13} style={{ color: "#1e63ad" }} className="shrink-0" />
                 <span>{selectedSlot} &mdash; 1 hour</span>
               </div>
             </div>
@@ -430,7 +448,8 @@ export default function BookingForm() {
             <Button
               type="submit"
               disabled={submitting}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-11"
+              className="w-full font-semibold h-11 text-white shadow-md hover:opacity-90 transition-opacity"
+              style={{ background: "#1e63ad" }}
             >
               {submitting ? (
                 <span className="flex items-center gap-2">
