@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
         process.env.NEXT_PUBLIC_APP_URL ||
         req.headers.get("origin") ||
         "http://localhost:3000"
-      const cancelUrl = `${origin}/cancel/${booking.cancellation_token}`
+      const cancelUrl = `${origin}/cancel?bookingid=${booking.cancellation_token}`
       const resend = new Resend(process.env.RESEND_API_KEY)
       const fromEmail = process.env.RESEND_FROM_EMAIL || "SSA Study Room <onboarding@resend.dev>"
       await resend.emails.send({

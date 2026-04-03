@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { format, addDays, isBefore, startOfDay, isWeekend, isAfter } from "date-fns"
-import { MAX_BOOKING_DAYS_AHEAD } from "@/lib/types"
 import {
   Calendar,
   Clock,
@@ -22,6 +21,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import BookingConfirmation from "./BookingConfirmation"
 
+import { MAX_BOOKING_DAYS_AHEAD } from "@/lib/types"
+
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -37,7 +38,10 @@ function getFirstDayOfMonth(year: number, month: number) {
 }
 
 export default function BookingForm() {
-  const [mounted, setMounted] = useState(false)
+  // Safe to use Date directly — this component is client-only (ssr: false in page.tsx)
+  const [today] = useState<Date>(() => startOfDay(new Date()))
+  const [viewYear, setViewYear] = useState<number>(() => new Date().getFullYear())
+  const [viewMonth, setViewMonth] = useState<number>(() => new Date().getMonth())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
@@ -52,20 +56,6 @@ export default function BookingForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmedBooking, setConfirmedBooking] = useState<Record<string, unknown> | null>(null)
-
-  // Client-side only state - initialize in effect to avoid hydration mismatch
-  const [today, setToday] = useState<Date | null>(null)
-  const [viewYear, setViewYear] = useState<number>(2025)
-  const [viewMonth, setViewMonth] = useState<number>(0)
-
-  // Initialize date only on client side
-  useEffect(() => {
-    const now = startOfDay(new Date())
-    setToday(now)
-    setViewYear(now.getFullYear())
-    setViewMonth(now.getMonth())
-    setMounted(true)
-  }, [])
 
   // Fetch available slots when date is selected
   useEffect(() => {
@@ -153,16 +143,6 @@ export default function BookingForm() {
           cancellation_token: string
         }}
       />
-    )
-  }
-
-  // Show loading skeleton until client-side hydration completes
-  if (!mounted || !today) {
-    return (
-      <div className="space-y-6">
-        <div className="h-16 rounded-lg bg-muted animate-pulse" />
-        <div className="h-80 rounded-xl bg-muted animate-pulse" />
-      </div>
     )
   }
 
