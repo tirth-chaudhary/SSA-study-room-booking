@@ -3,6 +3,7 @@ import { LogIn } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
+// Home page — direct import, no dynamic() needed (BookingForm handles hydration internally)
 export default function Home() {
   return (
     <main className="min-h-screen font-sans" style={{ background: "linear-gradient(160deg, #e8f0fb 0%, #f4f7fb 60%, #fff9ed 100%)" }}>

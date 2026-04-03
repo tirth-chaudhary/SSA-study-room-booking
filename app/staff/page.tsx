@@ -20,7 +20,9 @@ export default function StaffPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const res = await fetch(`/api/staff/bookings?password=${encodeURIComponent(password)}`)
+    const res = await fetch("/api/admin/bookings", {
+      headers: { Authorization: `Bearer ${password}` },
+    })
     setLoading(false)
     if (res.ok) {
       setAuthed(true)
