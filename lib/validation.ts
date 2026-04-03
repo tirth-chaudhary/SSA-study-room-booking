@@ -9,7 +9,11 @@ export const createBookingSchema = z.object({
   student_name: z
     .string()
     .min(2, "Name must be at least 2 characters")
-    .max(100, "Name must be less than 100 characters"),
+    .max(100, "Name must be less than 100 characters")
+    .refine(
+      (name) => !/\d/.test(name),
+      "Name cannot contain numbers"
+    ),
   
   student_number: z
     .string()
