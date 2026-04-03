@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 interface BookingConfirmationProps {
   booking: {
     id: string
+    booking_number?: number
     student_name: string
     student_email: string
     booking_date: string

@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
 import BookingConfirmation from "./BookingConfirmation"
 
 const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -171,57 +170,46 @@ export default function BookingForm() {
 
   return (
     <div className="space-y-6">
-      {/* Notice banner */}
-      <div className="flex items-start gap-3 bg-[var(--ssa-gold)]/15 border border-[var(--ssa-gold)]/40 rounded-lg px-4 py-3">
-        <AlertTriangle className="text-amber-600 mt-0.5 shrink-0" size={16} />
-        <p className="text-sm text-amber-800 leading-relaxed">
-          <strong>Reminder:</strong> Please do not leave a key inside the office &mdash; you may get locked out.
-        </p>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Step 1 – Pick a date */}
         <section>
-          <h2 className="text-base font-semibold text-primary flex items-center gap-2 mb-3">
-            <Calendar size={16} />
-            Step 1 &mdash; Choose a Date
+          <h2 className="text-sm font-bold uppercase tracking-widest mb-3 flex items-center gap-2" style={{ color: "#1e63ad" }}>
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-white text-xs font-bold" style={{ background: "#1e63ad" }}>1</span>
+            Choose a Date
           </h2>
-          <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+          <div className="rounded-2xl border shadow-sm overflow-hidden" style={{ borderColor: "#d1dce8", background: "#ffffff" }}>
             {/* Calendar header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-primary text-primary-foreground">
+            <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#1e63ad" }}>
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="p-1 rounded hover:bg-white/20 transition-colors"
+                className="p-1.5 rounded-lg transition-colors hover:bg-white/20"
                 aria-label="Previous month"
               >
                 <ChevronLeft size={18} />
               </button>
-              <span className="font-semibold text-sm">
+              <span className="font-bold text-sm tracking-wide">
                 {MONTHS[viewMonth]} {viewYear}
               </span>
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1 rounded hover:bg-white/20 transition-colors"
+                className="p-1.5 rounded-lg transition-colors hover:bg-white/20"
                 aria-label="Next month"
               >
                 <ChevronRight size={18} />
               </button>
             </div>
             {/* Day labels */}
-            <div className="grid grid-cols-7 bg-muted border-b border-border">
+            <div className="grid grid-cols-7 border-b" style={{ background: "#e8f0fb", borderColor: "#d1dce8" }}>
               {WEEK_DAYS.map((d) => (
-                <div
-                  key={d}
-                  className="text-center text-xs font-medium text-muted-foreground py-2"
-                >
+                <div key={d} className="text-center text-xs font-semibold py-2" style={{ color: "#1e63ad" }}>
                   {d}
                 </div>
               ))}
             </div>
             {/* Days grid */}
-            <div className="grid grid-cols-7 p-2 gap-1">
+            <div className="grid grid-cols-7 p-3 gap-1">
               {Array.from({ length: firstDay }).map((_, i) => (
                 <div key={`empty-${i}`} />
               ))}
@@ -247,16 +235,18 @@ export default function BookingForm() {
                     type="button"
                     onClick={() => !isDisabled && handleDayClick(day)}
                     disabled={isDisabled}
-                    className={cn(
-                      "aspect-square flex items-center justify-center text-sm rounded-lg font-medium transition-all",
+                    className="aspect-square flex items-center justify-center text-sm rounded-xl font-medium transition-all"
+                    style={
                       isSelected
-                        ? "bg-accent text-accent-foreground shadow-md scale-105"
+                        ? { background: "#1e63ad", color: "#ffffff", boxShadow: "0 2px 8px #1e63ad55" }
                         : isToday && !isDisabled
-                        ? "border-2 border-accent text-accent"
+                        ? { border: "2px solid #fbb315", color: "#1e63ad", fontWeight: 700 }
                         : isDisabled
-                        ? "text-muted-foreground/40 cursor-not-allowed"
-                        : "hover:bg-secondary text-foreground cursor-pointer"
-                    )}
+                        ? { color: "#c0cfe0", cursor: "not-allowed" }
+                        : { color: "#0f1c2e", cursor: "pointer" }
+                    }
+                    onMouseEnter={(e) => { if (!isDisabled && !isSelected) (e.currentTarget as HTMLButtonElement).style.background = "#e8f0fb" }}
+                    onMouseLeave={(e) => { if (!isDisabled && !isSelected) (e.currentTarget as HTMLButtonElement).style.background = "" }}
                   >
                     {day}
                   </button>
@@ -265,55 +255,48 @@ export default function BookingForm() {
             </div>
             {selectedDate && (
               <div className="px-4 pb-3 text-center">
-                <span className="text-sm font-medium text-accent">
+                <span className="text-sm font-semibold" style={{ color: "#1e63ad" }}>
                   Selected: {format(selectedDate, "EEEE, MMMM d, yyyy")}
                 </span>
               </div>
             )}
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Weekdays only &bull; Bookings available up to 1 week in advance &bull; Hours: 8:30 AM - 4:30 PM
+          <p className="text-xs mt-2" style={{ color: "#5a718a" }}>
+            Weekdays only &bull; Up to 1 week ahead &bull; 8:30 AM – 4:30 PM
           </p>
         </section>
 
         {/* Step 2 – Pick a time slot */}
         {selectedDate && (
           <section>
-            <h2 className="text-base font-semibold text-primary flex items-center gap-2 mb-3">
-              <Clock size={16} />
-              Step 2 &mdash; Choose a Time Slot
+            <h2 className="text-sm font-bold uppercase tracking-widest mb-3 flex items-center gap-2" style={{ color: "#1e63ad" }}>
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-white text-xs font-bold" style={{ background: "#1e63ad" }}>2</span>
+              Choose a Time Slot
             </h2>
             {loadingSlots ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-10 rounded-lg bg-muted animate-pulse"
-                  />
+                  <div key={i} className="h-11 rounded-xl bg-muted animate-pulse" />
                 ))}
               </div>
             ) : availableSlots.length === 0 && bookedSlots.length > 0 ? (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-center">
-                <p className="text-sm text-destructive font-medium">
-                  All time slots for this day are booked.
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Please select another date.
-                </p>
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
+                <p className="text-sm font-semibold text-red-600">All slots for this day are booked.</p>
+                <p className="text-xs text-muted-foreground mt-1">Please select another date.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 {availableSlots.map((slot) => (
                   <button
                     key={slot}
                     type="button"
                     onClick={() => setSelectedSlot(slot)}
-                    className={cn(
-                      "py-2 px-1 text-sm rounded-lg border font-medium transition-all",
+                    className="py-2.5 px-1 text-sm rounded-xl border font-semibold transition-all"
+                    style={
                       selectedSlot === slot
-                        ? "bg-accent text-accent-foreground border-accent shadow-md scale-105"
-                        : "bg-card border-border text-foreground hover:border-accent hover:bg-secondary"
-                    )}
+                        ? { background: "#1e63ad", color: "#ffffff", borderColor: "#1e63ad", boxShadow: "0 2px 8px #1e63ad44" }
+                        : { background: "#ffffff", color: "#0f1c2e", borderColor: "#d1dce8" }
+                    }
                   >
                     {slot}
                   </button>
@@ -323,7 +306,8 @@ export default function BookingForm() {
                     key={slot}
                     type="button"
                     disabled
-                    className="py-2 px-1 text-sm rounded-lg border border-border bg-muted text-muted-foreground/50 cursor-not-allowed line-through"
+                    className="py-2.5 px-1 text-sm rounded-xl border font-medium cursor-not-allowed line-through"
+                    style={{ background: "#f5f7fb", color: "#c0cfe0", borderColor: "#e4eaf2" }}
                   >
                     {slot}
                   </button>
@@ -336,114 +320,84 @@ export default function BookingForm() {
         {/* Step 3 – Student details */}
         {selectedDate && selectedSlot && (
           <section className="space-y-4">
-            <h2 className="text-base font-semibold text-primary flex items-center gap-2">
-              <User size={16} />
-              Step 3 &mdash; Your Details
+            <h2 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2" style={{ color: "#1e63ad" }}>
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-white text-xs font-bold" style={{ background: "#1e63ad" }}>3</span>
+              Your Details
             </h2>
 
             <div className="space-y-3">
               <div>
-                <Label htmlFor="student_name" className="text-sm font-medium flex items-center gap-1.5 mb-1.5">
-                  <User size={13} className="text-muted-foreground" />
+                <Label htmlFor="student_name" className="text-sm font-semibold flex items-center gap-1.5 mb-1.5" style={{ color: "#0f1c2e" }}>
+                  <User size={13} style={{ color: "#1e63ad" }} />
                   Full Name
                 </Label>
-                <Input
-                  id="student_name"
-                  required
-                  placeholder="Jane Smith"
-                  value={form.student_name}
-                  onChange={(e) => setForm({ ...form, student_name: e.target.value })}
-                />
+                <Input id="student_name" required placeholder="Jane Smith" value={form.student_name} onChange={(e) => setForm({ ...form, student_name: e.target.value })} />
               </div>
 
               <div>
-                <Label htmlFor="student_number" className="text-sm font-medium flex items-center gap-1.5 mb-1.5">
-                  <Hash size={13} className="text-muted-foreground" />
+                <Label htmlFor="student_number" className="text-sm font-semibold flex items-center gap-1.5 mb-1.5" style={{ color: "#0f1c2e" }}>
+                  <Hash size={13} style={{ color: "#1e63ad" }} />
                   Student Number
                 </Label>
-                <Input
-                  id="student_number"
-                  required
-                  placeholder="e.g. 123456789"
-                  value={form.student_number}
-                  onChange={(e) => setForm({ ...form, student_number: e.target.value })}
-                />
+                <Input id="student_number" required placeholder="e.g. 123456789" value={form.student_number} onChange={(e) => setForm({ ...form, student_number: e.target.value })} />
               </div>
 
               <div>
-                <Label htmlFor="student_email" className="text-sm font-medium flex items-center gap-1.5 mb-1.5">
-                  <Mail size={13} className="text-muted-foreground" />
+                <Label htmlFor="student_email" className="text-sm font-semibold flex items-center gap-1.5 mb-1.5" style={{ color: "#0f1c2e" }}>
+                  <Mail size={13} style={{ color: "#1e63ad" }} />
                   Student Email
                 </Label>
-                <Input
-                  id="student_email"
-                  type="email"
-                  required
-                  placeholder="jane@university.ca"
-                  value={form.student_email}
-                  onChange={(e) => setForm({ ...form, student_email: e.target.value })}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Your booking confirmation will be sent here.
-                </p>
+                <Input id="student_email" type="email" required placeholder="jane@myumanitoba.ca" value={form.student_email} onChange={(e) => setForm({ ...form, student_email: e.target.value })} />
+                <p className="text-xs mt-1" style={{ color: "#5a718a" }}>Confirmation will be sent here.</p>
               </div>
 
               <div>
-                <Label htmlFor="reason" className="text-sm font-medium flex items-center gap-1.5 mb-1.5">
-                  <FileText size={13} className="text-muted-foreground" />
+                <Label htmlFor="reason" className="text-sm font-semibold flex items-center gap-1.5 mb-1.5" style={{ color: "#0f1c2e" }}>
+                  <FileText size={13} style={{ color: "#1e63ad" }} />
                   Reason for Booking
                 </Label>
-                <Textarea
-                  id="reason"
-                  required
-                  placeholder="e.g. Group project meeting, exam study session, tutoring..."
-                  value={form.reason}
-                  onChange={(e) => setForm({ ...form, reason: e.target.value })}
-                  rows={3}
-                  className="resize-none"
-                />
+                <Textarea id="reason" required placeholder="e.g. Group project, exam study, tutoring..." value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} rows={3} className="resize-none" />
               </div>
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 rounded-lg bg-destructive/10 border border-destructive/30 px-3 py-2.5">
-                <AlertTriangle size={15} className="text-destructive mt-0.5 shrink-0" />
-                <p className="text-sm text-destructive">{error}</p>
+              <div className="flex items-start gap-2 rounded-xl px-3 py-2.5 border border-red-200 bg-red-50">
+                <AlertTriangle size={15} className="text-red-500 mt-0.5 shrink-0" />
+                <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
 
             {/* Booking summary */}
-            <div className="rounded-lg bg-[var(--ssa-light-blue)] border border-accent/20 p-4 space-y-1.5">
-              <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">
-                Booking Summary
-              </p>
-              <div className="flex items-center gap-2 text-sm text-foreground">
-                <Calendar size={13} className="text-accent shrink-0" />
+            <div className="rounded-2xl p-4 space-y-2 border" style={{ background: "#e8f0fb", borderColor: "#c3d6f0" }}>
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#1e63ad" }}>Booking Summary</p>
+              <div className="flex items-center gap-2 text-sm" style={{ color: "#0f1c2e" }}>
+                <Calendar size={13} style={{ color: "#1e63ad" }} />
                 <span>{format(selectedDate, "EEEE, MMMM d, yyyy")}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-foreground">
-                <Clock size={13} className="text-accent shrink-0" />
+              <div className="flex items-center gap-2 text-sm" style={{ color: "#0f1c2e" }}>
+                <Clock size={13} style={{ color: "#1e63ad" }} />
                 <span>{selectedSlot} &mdash; 1 hour</span>
               </div>
             </div>
 
-            <Button
+            <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-semibold h-11"
+              className="w-full py-3 rounded-xl font-bold text-sm transition-all shadow-md"
+              style={{ background: "#fbb315", color: "#0f1c2e" }}
             >
               {submitting ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                  Confirming Booking...
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 rounded-full border-2 border-[#0f1c2e]/30 border-t-[#0f1c2e] animate-spin" />
+                  Confirming...
                 </span>
               ) : (
-                <span className="flex items-center gap-2">
+                <span className="flex items-center justify-center gap-2">
                   <CheckCircle2 size={16} />
                   Confirm Booking
                 </span>
               )}
-            </Button>
+            </button>
           </section>
         )}
       </form>
