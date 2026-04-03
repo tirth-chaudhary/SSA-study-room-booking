@@ -4,46 +4,45 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* SSA Brand Colors: #ffffff, #fbb315 (gold), #1e63ad (blue) */
-  --background: #f5f7fb;
-  --foreground: #0f1c2e;
-  --card: #ffffff;
-  --card-foreground: #0f1c2e;
-  --popover: #ffffff;
-  --popover-foreground: #0f1c2e;
-  --primary: #1e63ad;
-  --primary-foreground: #ffffff;
-  --secondary: #e8f0fb;
-  --secondary-foreground: #1e63ad;
-  --muted: #eef2f8;
-  --muted-foreground: #5a718a;
-  --accent: #1e63ad;
-  --accent-foreground: #ffffff;
+  /* SSA Brand: Deep navy primary, clean whites, SSA blue accent */
+  --background: oklch(0.98 0.004 240);
+  --foreground: oklch(0.15 0.02 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.02 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.02 250);
+  --primary: oklch(0.32 0.08 255);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.94 0.012 240);
+  --secondary-foreground: oklch(0.32 0.08 255);
+  --muted: oklch(0.94 0.008 240);
+  --muted-foreground: oklch(0.50 0.02 250);
+  --accent: oklch(0.56 0.18 255);
+  --accent-foreground: oklch(0.98 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: #ffffff;
-  --border: #d1dce8;
-  --input: #e4eaf2;
-  --ring: #1e63ad;
-  --chart-1: #1e63ad;
-  --chart-2: #fbb315;
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.88 0.012 240);
+  --input: oklch(0.92 0.008 240);
+  --ring: oklch(0.56 0.18 255);
+  --chart-1: oklch(0.56 0.18 255);
+  --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.5rem;
-  --sidebar: #1e63ad;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #fbb315;
-  --sidebar-primary-foreground: #0f1c2e;
-  --sidebar-accent: #1754961a;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #1754961a;
-  --sidebar-ring: #fbb315;
-  /* SSA custom tokens */
-  --ssa-navy: #0f1c2e;
-  --ssa-blue: #1e63ad;
-  --ssa-gold: #fbb315;
-  --ssa-light-blue: #e8f0fb;
-  --ssa-white: #ffffff;
+  --sidebar: oklch(0.32 0.08 255);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: oklch(0.56 0.18 255);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.26 0.07 255);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.26 0.07 255);
+  --sidebar-ring: oklch(0.56 0.18 255);
+  /* Custom SSA tokens */
+  --ssa-navy: oklch(0.22 0.07 255);
+  --ssa-blue: oklch(0.56 0.18 255);
+  --ssa-light-blue: oklch(0.92 0.04 255);
+  --ssa-gold: oklch(0.78 0.15 85);
 }
 
 .dark {
@@ -86,9 +85,8 @@
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-ssa-navy: var(--ssa-navy);
   --color-ssa-blue: var(--ssa-blue);
-  --color-ssa-gold: var(--ssa-gold);
   --color-ssa-light-blue: var(--ssa-light-blue);
-  --color-ssa-white: var(--ssa-white);
+  --color-ssa-gold: var(--ssa-gold);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
