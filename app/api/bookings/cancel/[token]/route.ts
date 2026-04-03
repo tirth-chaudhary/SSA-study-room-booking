@@ -3,14 +3,13 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { type ApiResponse } from "@/lib/validation"
 import { Resend } from "resend"
 
-type RouteParams = { params: { token: string } }
-
+// Next.js 16: params must be awaited
 export async function GET(
   req: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ token: string }> }
 ): Promise<NextResponse<ApiResponse>> {
   try {
-    const token = params.token
+    const { token } = await params
 
     if (!token) {
       return NextResponse.json(
@@ -46,10 +45,10 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ token: string }> }
 ): Promise<NextResponse<ApiResponse>> {
   try {
-    const token = params.token
+    const { token } = await params
 
     if (!token) {
       return NextResponse.json(
@@ -150,34 +149,24 @@ function buildCancellationEmail({
     <tr>
       <td align="center">
         <table role="presentation" width="100%" style="max-width:580px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(30,99,173,0.10);">
-
-          <!-- Gold top bar -->
           <tr><td style="background:#fbb315;height:5px;font-size:0;">&nbsp;</td></tr>
-
-          <!-- Header -->
           <tr>
             <td style="background:#1e63ad;padding:24px 32px;text-align:center;">
               <p style="margin:0 0 4px;color:rgba(255,255,255,0.65);font-size:11px;letter-spacing:2px;text-transform:uppercase;">Science Students&apos; Association &bull; University of Manitoba</p>
               <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">Booking Cancelled</h1>
             </td>
           </tr>
-
-          <!-- Warning banner -->
           <tr>
             <td style="background:#fef2f2;padding:12px 32px;text-align:center;border-bottom:2px solid #dc2626;">
               <p style="margin:0;color:#7f1d1d;font-size:14px;font-weight:600;">Your booking has been cancelled</p>
             </td>
           </tr>
-
-          <!-- Body -->
           <tr>
             <td style="padding:24px 32px;">
               <p style="margin:0 0 20px;font-size:16px;color:#0f1f3d;">Hi <strong>${student_name}</strong>,</p>
               <p style="margin:0 0 24px;font-size:14px;color:#5a7299;line-height:1.7;">
                 Your SSA Study Room booking has been successfully cancelled. The time slot is now available for other students.
               </p>
-
-              <!-- Details card -->
               <table role="presentation" width="100%" style="background:#fef2f2;border-radius:12px;border-left:4px solid #dc2626;margin-bottom:20px;">
                 <tr>
                   <td style="padding:20px 24px;">
@@ -198,12 +187,9 @@ function buildCancellationEmail({
                   </td>
                 </tr>
               </table>
-
               <p style="color:#5a7299;font-size:13px;">If you need to rebook, please visit the SSA Study Room booking page.</p>
             </td>
           </tr>
-
-          <!-- Footer -->
           <tr>
             <td style="background:#f4f7fb;padding:16px 32px;border-top:1px solid #e8f0fb;text-align:center;">
               <p style="margin:0;font-size:12px;color:#5a7299;">
@@ -212,9 +198,7 @@ function buildCancellationEmail({
               </p>
             </td>
           </tr>
-          <!-- Gold bottom bar -->
           <tr><td style="background:#fbb315;height:4px;font-size:0;">&nbsp;</td></tr>
-
         </table>
       </td>
     </tr>
