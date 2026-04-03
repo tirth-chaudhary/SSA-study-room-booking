@@ -43,6 +43,8 @@ export default function BookingForm() {
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
   const [bookedSlots, setBookedSlots] = useState<string[]>([])
   const [loadingSlots, setLoadingSlots] = useState(false)
+  const [isBlocked, setIsBlocked] = useState(false)
+  const [blockedReason, setBlockedReason] = useState<string | null>(null)
   const [form, setForm] = useState({
     student_name: "",
     student_number: "",
@@ -73,12 +75,19 @@ export default function BookingForm() {
     setLoadingSlots(true)
     setSelectedSlot(null)
     setAvailableSlots([])
+    setIsBlocked(false)
+    setBlockedReason(null)
     const dateStr = format(selectedDate, "yyyy-MM-dd")
     fetch(`/api/availability?date=${dateStr}`)
       .then((r) => r.json())
       .then((data) => {
-        setAvailableSlots(data.availableSlots || [])
-        setBookedSlots(data.bookedSlots || [])
+        if (data.blocked) {
+          setIsBlocked(true)
+          setBlockedReason(data.blockedReason || "This date is unavailable.")
+        } else {
+          setAvailableSlots(data.availableSlots || [])
+          setBookedSlots(data.bookedSlots || [])
+        }
       })
       .finally(() => setLoadingSlots(false))
   }, [selectedDate])
@@ -298,14 +307,21 @@ export default function BookingForm() {
             {loadingSlots ? (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-10 rounded-lg bg-muted animate-pulse"
-                  />
+                  <div key={i} className="h-10 rounded-lg bg-muted animate-pulse" />
                 ))}
               </div>
-            ) : availableSlots.length === 0 && bookedSlots.length > 0 ? (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-center">
+            ) : isBlocked ? (
+              <div className="rounded-lg border p-4 text-center" style={{ background: "#fff8e1", borderColor: "#fbb315" }}>
+                <AlertTriangle size={20} className="mx-auto mb-2" style={{ color: "#d9970c" }} />
+                <p className="text-sm font-semibold" style={{ color: "#7a5000" }}>
+                  This date is unavailable
+                </p>
+                <p className="text-xs mt-1" style={{ color: "#7a5000" }}>
+                  {blockedReason}
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">Please select a different date.</p>
+              </div>
+            ) : availableSlots.length === 0 && bookedSlots.length > 0 ? (              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-center">
                 <p className="text-sm text-destructive font-medium">
                   All time slots for this day are booked.
                 </p>
@@ -405,10 +421,10 @@ export default function BookingForm() {
                 <Label htmlFor="reason" className="text-sm font-medium flex items-center gap-1.5 mb-1.5">
                   <FileText size={13} className="text-muted-foreground" />
                   Reason for Booking
+                  <span className="text-xs text-muted-foreground font-normal ml-1">(optional)</span>
                 </Label>
                 <Textarea
                   id="reason"
-                  required
                   placeholder="e.g. Group project meeting, exam study session, tutoring..."
                   value={form.reason}
                   onChange={(e) => setForm({ ...form, reason: e.target.value })}

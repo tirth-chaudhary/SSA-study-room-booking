@@ -22,6 +22,25 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 
     const supabase = createAdminClient()
 
+    // Check if date is blocked by staff
+    const { data: blocked } = await supabase
+      .from("blocked_dates")
+      .select("id, reason")
+      .eq("date", booking_date)
+      .maybeSingle()
+
+    if (blocked) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: blocked.reason
+            ? `This date is unavailable: ${blocked.reason}`
+            : "This date has been blocked by staff and is unavailable for booking.",
+        },
+        { status: 409 }
+      )
+    }
+
     // Enforce 1-hour-per-day cap per student
     const { data: existing, error: existingError } = await supabase
       .from("bookings")

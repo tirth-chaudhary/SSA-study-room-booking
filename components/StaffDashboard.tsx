@@ -35,12 +35,15 @@ import {
   Search,
   CalendarDays,
   LayoutList,
+  Ban,
+  Plus,
+  AlertTriangle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import type { Booking } from "@/lib/types"
+import type { Booking, BlockedDate } from "@/lib/types"
 import Image from "next/image"
 import { TIME_SLOTS } from "@/lib/types"
 
@@ -49,7 +52,7 @@ interface StaffDashboardProps {
   onLogout: () => void
 }
 
-type ViewMode = "month" | "week" | "day" | "list"
+type ViewMode = "month" | "week" | "day" | "list" | "blocked"
 
 const STATUS_COLORS: Record<string, string> = {
   confirmed: "bg-green-100 text-green-800 border-green-200",
@@ -68,6 +71,13 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState<"all" | "confirmed" | "cancelled">("all")
 
+  // Blocked dates state
+  const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([])
+  const [loadingBlocked, setLoadingBlocked] = useState(false)
+  const [blockForm, setBlockForm] = useState({ date: "", reason: "" })
+  const [blockError, setBlockError] = useState<string | null>(null)
+  const [blockSaving, setBlockSaving] = useState(false)
+
   const fetchBookings = useCallback(async () => {
     setLoading(true)
     const res = await fetch("/api/admin/bookings", {
@@ -83,6 +93,54 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
   useEffect(() => {
     fetchBookings()
   }, [fetchBookings])
+
+  const fetchBlockedDates = useCallback(async () => {
+    setLoadingBlocked(true)
+    const res = await fetch("/api/admin/blocked-dates", {
+      headers: { Authorization: `Bearer ${password}` },
+    })
+    const data = await res.json()
+    setBlockedDates(data.success && data.data ? data.data : [])
+    setLoadingBlocked(false)
+  }, [password])
+
+  useEffect(() => {
+    fetchBlockedDates()
+  }, [fetchBlockedDates])
+
+  const handleBlockDate = async () => {
+    if (!blockForm.date) {
+      setBlockError("Please select a date to block.")
+      return
+    }
+    setBlockSaving(true)
+    setBlockError(null)
+    const res = await fetch("/api/admin/blocked-dates", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${password}`,
+      },
+      body: JSON.stringify(blockForm),
+    })
+    const data = await res.json()
+    setBlockSaving(false)
+    if (!data.success) {
+      setBlockError(data.error || "Failed to block date.")
+    } else {
+      setBlockForm({ date: "", reason: "" })
+      fetchBlockedDates()
+    }
+  }
+
+  const handleUnblockDate = async (id: string) => {
+    if (!confirm("Remove this blocked date? Students will be able to book it again.")) return
+    await fetch(`/api/admin/blocked-dates?id=${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${password}` },
+    })
+    fetchBlockedDates()
+  }
 
   const bookingsForDate = (date: Date) =>
     bookings.filter((b) => b.booking_date === format(date, "yyyy-MM-dd") && b.status === "confirmed")
@@ -556,6 +614,7 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
     { key: "week", label: "Week", icon: <CalendarDays size={13} /> },
     { key: "day", label: "Day", icon: <LayoutList size={13} /> },
     { key: "list", label: "List", icon: <List size={13} /> },
+    { key: "blocked", label: "Blocked", icon: <Ban size={13} /> },
   ]
 
   return (
@@ -627,7 +686,7 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
         </div>
 
         {/* Navigation bar (for calendar views) */}
-        {view !== "list" && (
+        {view !== "list" && view !== "blocked" && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <button
@@ -666,6 +725,112 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
             {view === "month" && <MonthView />}
             {view === "week" && <WeekView />}
             {view === "day" && <DayView />}
+
+            {/* BLOCKED DATES VIEW */}
+            {view === "blocked" && (
+              <div className="space-y-4">
+                {/* Add block form */}
+                <div className="rounded-2xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: "#d0ddf0" }}>
+                  <div className="px-5 py-3 border-b flex items-center gap-2" style={{ background: "#fff8e1", borderColor: "#fbb315" }}>
+                    <Ban size={15} style={{ color: "#d9970c" }} />
+                    <h2 className="text-sm font-bold" style={{ color: "#7a5000" }}>Block a Date</h2>
+                  </div>
+                  <div className="px-5 py-4 space-y-3">
+                    <p className="text-xs text-muted-foreground">
+                      Blocked dates prevent students from making new bookings. Existing bookings on that date are not affected.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex-1">
+                        <Label className="text-xs mb-1 block" style={{ color: "#5a7299" }}>Date to Block</Label>
+                        <Input
+                          type="date"
+                          value={blockForm.date}
+                          onChange={(e) => setBlockForm({ ...blockForm, date: e.target.value })}
+                          className="h-9 text-sm"
+                        />
+                      </div>
+                      <div className="flex-[2]">
+                        <Label className="text-xs mb-1 block" style={{ color: "#5a7299" }}>Reason (shown to students)</Label>
+                        <Input
+                          placeholder="e.g. Holiday, Office closed, Reading Week..."
+                          value={blockForm.reason}
+                          onChange={(e) => setBlockForm({ ...blockForm, reason: e.target.value })}
+                          className="h-9 text-sm"
+                        />
+                      </div>
+                    </div>
+                    {blockError && (
+                      <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2">
+                        <AlertTriangle size={13} className="text-red-500 shrink-0" />
+                        <p className="text-xs text-red-600">{blockError}</p>
+                      </div>
+                    )}
+                    <Button
+                      onClick={handleBlockDate}
+                      disabled={blockSaving}
+                      size="sm"
+                      className="gap-1.5 text-white"
+                      style={{ background: "#d9970c" }}
+                    >
+                      {blockSaving
+                        ? <span className="h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                        : <Plus size={13} />}
+                      Block Date
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Blocked dates list */}
+                <div className="rounded-2xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: "#d0ddf0" }}>
+                  <div className="px-5 py-3 border-b" style={{ background: "#f4f7fb", borderColor: "#e8f0fb" }}>
+                    <h2 className="text-sm font-bold" style={{ color: "#0f1f3d" }}>
+                      Blocked Dates
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">({blockedDates.length})</span>
+                    </h2>
+                  </div>
+                  {loadingBlocked ? (
+                    <div className="space-y-2 p-4">
+                      {[1, 2, 3].map((i) => <div key={i} className="h-12 rounded-xl bg-muted animate-pulse" />)}
+                    </div>
+                  ) : blockedDates.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <CheckCircle2 size={28} className="mx-auto mb-2 text-green-400" />
+                      <p className="text-sm text-muted-foreground">No dates are currently blocked.</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y" style={{ borderColor: "#f0f4fb" }}>
+                      {blockedDates.map((bd) => (
+                        <div key={bd.id} className="flex items-center justify-between px-5 py-3 hover:bg-[#f4f7fb] transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                              style={{ background: "#fff8e1" }}
+                            >
+                              <Ban size={14} style={{ color: "#d9970c" }} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold" style={{ color: "#0f1f3d" }}>
+                                {format(new Date(bd.date + "T12:00:00"), "EEEE, MMMM d, yyyy")}
+                              </p>
+                              {bd.reason && (
+                                <p className="text-xs" style={{ color: "#5a7299" }}>{bd.reason}</p>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleUnblockDate(bd.id)}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors hover:bg-red-50 hover:border-red-300 hover:text-red-600"
+                            style={{ borderColor: "#d0ddf0", color: "#5a7299" }}
+                          >
+                            Unblock
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* LIST VIEW */}
             {view === "list" && (

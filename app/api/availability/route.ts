@@ -11,6 +11,23 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = createAdminClient()
+
+  // Check if date is blocked
+  const { data: blocked } = await supabase
+    .from("blocked_dates")
+    .select("id, reason")
+    .eq("date", date)
+    .maybeSingle()
+
+  if (blocked) {
+    return NextResponse.json({
+      availableSlots: [],
+      bookedSlots: [],
+      blocked: true,
+      blockedReason: blocked.reason || "This date is unavailable.",
+    })
+  }
+
   const { data, error } = await supabase
     .from("bookings")
     .select("time_slot")
@@ -24,5 +41,5 @@ export async function GET(req: NextRequest) {
   const bookedSlots = data.map((b) => b.time_slot)
   const availableSlots = TIME_SLOTS.filter((s) => !bookedSlots.includes(s))
 
-  return NextResponse.json({ availableSlots, bookedSlots })
+  return NextResponse.json({ availableSlots, bookedSlots, blocked: false })
 }

@@ -34,8 +34,9 @@ export const createBookingSchema = z.object({
   
   reason: z
     .string()
-    .min(5, "Reason must be at least 5 characters")
-    .max(500, "Reason must be less than 500 characters"),
+    .max(500, "Reason must be less than 500 characters")
+    .optional()
+    .or(z.literal("")),
 })
 
 export type CreateBookingInput = z.infer<typeof createBookingSchema>

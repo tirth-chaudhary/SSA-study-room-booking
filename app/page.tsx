@@ -10,7 +10,6 @@ export default function Home() {
       <header style={{ background: "#1e63ad" }} className="text-white shadow-lg">
         <div className="max-w-4xl mx-auto flex items-center justify-between px-5 py-3">
           <div className="flex items-center gap-3">
-            {/* SSA Logo */}
             <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-md overflow-hidden shrink-0">
               <Image
                 src="/images/ssa-logo.png"
@@ -50,7 +49,7 @@ export default function Home() {
             Reserve Your Study Space
           </h2>
           <p className="text-sm text-white/80 leading-relaxed">
-            Book the SSA study room — weekdays only, 8:30 AM to 4:30 PM.<br className="hidden sm:block" />
+            Book the SSA study room &mdash; weekdays only, 8:30 AM to 4:30 PM.{" "}
             Up to <strong className="text-white">1 hour per person per day</strong>, up to 1 week ahead.
           </p>
         </div>
