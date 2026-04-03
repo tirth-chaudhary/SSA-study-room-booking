@@ -303,7 +303,7 @@ export default function BookingForm() {
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            Weekdays only &bull; Bookings available up to 1 week in advance &bull; Hours: 8:30 AM - 4:30 PM
+            Weekdays only &bull; Bookings available up to 1 week in advance &bull; Hours: 9:30 AM - 4:30 PM
           </p>
         </section>
 
