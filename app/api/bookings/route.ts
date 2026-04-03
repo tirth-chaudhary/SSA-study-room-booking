@@ -22,23 +22,29 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 
     const supabase = createAdminClient()
 
-    // Check if date is blocked by staff
-    const { data: blocked } = await supabase
+    // Check if date or specific slot is blocked by staff
+    const { data: blocks } = await supabase
       .from("blocked_dates")
-      .select("id, reason")
+      .select("id, time_slot, reason")
       .eq("date", booking_date)
-      .maybeSingle()
 
-    if (blocked) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: blocked.reason
-            ? `This date is unavailable: ${blocked.reason}`
-            : "This date has been blocked by staff and is unavailable for booking.",
-        },
-        { status: 409 }
-      )
+    if (blocks && blocks.length > 0) {
+      const fullDayBlock = blocks.find((b) => b.time_slot === null)
+      const slotBlock = blocks.find((b) => b.time_slot === time_slot)
+      const activeBlock = fullDayBlock || slotBlock
+      if (activeBlock) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: activeBlock.reason
+              ? `This ${activeBlock.time_slot ? "time slot" : "date"} is unavailable: ${activeBlock.reason}`
+              : activeBlock.time_slot
+              ? "This time slot has been blocked by staff."
+              : "This date has been blocked by staff and is unavailable for booking.",
+          },
+          { status: 409 }
+        )
+      }
     }
 
     // Enforce 1-hour-per-day cap per student
@@ -118,7 +124,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
           process.env.NEXT_PUBLIC_APP_URL ||
           req.headers.get("origin") ||
           "http://localhost:3000"
-        const cancelUrl = `${origin}/api/bookings/cancel/${booking.cancellation_token}`
+        const cancelUrl = `${origin}/cancel?bookingid=${booking.cancellation_token}`
         const resend = new Resend(process.env.RESEND_API_KEY)
         const fromEmail =
           process.env.RESEND_FROM_EMAIL || "SSA Study Room <onboarding@resend.dev>"

@@ -44,8 +44,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import type { Booking, BlockedDate } from "@/lib/types"
-import Image from "next/image"
 import { TIME_SLOTS } from "@/lib/types"
+import Image from "next/image"
 
 interface StaffDashboardProps {
   password: string
@@ -74,7 +74,7 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
   // Blocked dates state
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([])
   const [loadingBlocked, setLoadingBlocked] = useState(false)
-  const [blockForm, setBlockForm] = useState({ date: "", reason: "" })
+  const [blockForm, setBlockForm] = useState({ date: "", time_slot: "", reason: "" })
   const [blockError, setBlockError] = useState<string | null>(null)
   const [blockSaving, setBlockSaving] = useState(false)
 
@@ -121,14 +121,18 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
         "Content-Type": "application/json",
         Authorization: `Bearer ${password}`,
       },
-      body: JSON.stringify(blockForm),
+      body: JSON.stringify({
+        date: blockForm.date,
+        time_slot: blockForm.time_slot || null,
+        reason: blockForm.reason,
+      }),
     })
     const data = await res.json()
     setBlockSaving(false)
     if (!data.success) {
       setBlockError(data.error || "Failed to block date.")
     } else {
-      setBlockForm({ date: "", reason: "" })
+      setBlockForm({ date: "", time_slot: "", reason: "" })
       fetchBlockedDates()
     }
   }
@@ -737,10 +741,10 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
                   </div>
                   <div className="px-5 py-4 space-y-3">
                     <p className="text-xs text-muted-foreground">
-                      Blocked dates prevent students from making new bookings. Existing bookings on that date are not affected.
+                      Block an entire day or a specific time slot. Existing bookings are not affected — only new ones are prevented.
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <div className="flex-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
                         <Label className="text-xs mb-1 block" style={{ color: "#5a7299" }}>Date to Block</Label>
                         <Input
                           type="date"
@@ -749,10 +753,27 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
                           className="h-9 text-sm"
                         />
                       </div>
-                      <div className="flex-[2]">
+                      <div>
+                        <Label className="text-xs mb-1 block" style={{ color: "#5a7299" }}>
+                          Time Slot
+                          <span className="ml-1 font-normal text-muted-foreground">(optional — leave blank for whole day)</span>
+                        </Label>
+                        <select
+                          value={blockForm.time_slot}
+                          onChange={(e) => setBlockForm({ ...blockForm, time_slot: e.target.value })}
+                          className="w-full h-9 rounded-md border px-3 text-sm bg-background"
+                          style={{ borderColor: "#d0ddf0" }}
+                        >
+                          <option value="">— Entire Day —</option>
+                          {TIME_SLOTS.map((slot) => (
+                            <option key={slot} value={slot}>{slot}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
                         <Label className="text-xs mb-1 block" style={{ color: "#5a7299" }}>Reason (shown to students)</Label>
                         <Input
-                          placeholder="e.g. Holiday, Office closed, Reading Week..."
+                          placeholder="e.g. Holiday, Office closed..."
                           value={blockForm.reason}
                           onChange={(e) => setBlockForm({ ...blockForm, reason: e.target.value })}
                           className="h-9 text-sm"
@@ -811,6 +832,22 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
                             <div>
                               <p className="text-sm font-semibold" style={{ color: "#0f1f3d" }}>
                                 {format(new Date(bd.date + "T12:00:00"), "EEEE, MMMM d, yyyy")}
+                                {bd.time_slot && (
+                                  <span
+                                    className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded"
+                                    style={{ background: "#fff8e1", color: "#7a5000" }}
+                                  >
+                                    {bd.time_slot}
+                                  </span>
+                                )}
+                                {!bd.time_slot && (
+                                  <span
+                                    className="ml-2 text-xs font-medium px-1.5 py-0.5 rounded"
+                                    style={{ background: "#fde8e8", color: "#b91c1c" }}
+                                  >
+                                    Full Day
+                                  </span>
+                                )}
                               </p>
                               {bd.reason && (
                                 <p className="text-xs" style={{ color: "#5a7299" }}>{bd.reason}</p>

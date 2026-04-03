@@ -124,6 +124,10 @@ export default function BookingForm() {
       setError("Please select a date and time slot.")
       return
     }
+    if (/\d/.test(form.student_name)) {
+      setError("Name cannot contain numbers.")
+      return
+    }
     setSubmitting(true)
     setError(null)
     const res = await fetch("/api/bookings", {
@@ -381,8 +385,15 @@ export default function BookingForm() {
                   required
                   placeholder="Jane Smith"
                   value={form.student_name}
-                  onChange={(e) => setForm({ ...form, student_name: e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setForm({ ...form, student_name: val })
+                  }}
+                  className={/\d/.test(form.student_name) ? "border-red-400 focus-visible:ring-red-300" : ""}
                 />
+                {/\d/.test(form.student_name) && (
+                  <p className="text-xs text-red-500 mt-1">Name cannot contain numbers.</p>
+                )}
               </div>
 
               <div>

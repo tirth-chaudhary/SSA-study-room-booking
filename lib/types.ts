@@ -18,6 +18,7 @@ export interface Booking {
 export interface BlockedDate {
   id: string
   date: string
+  time_slot?: string | null
   reason?: string | null
   created_by?: string | null
   created_at: string
