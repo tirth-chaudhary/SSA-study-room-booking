@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       await resend.emails.send({
         from:
           process.env.RESEND_FROM_EMAIL ||
-          "SSA Study Room <noreply@tirthchaudhary.com>",
+          "SSA Study Room <onboarding@resend.dev>",
         to: student_email,
         subject: `Booking Confirmed – SSA Study Room on ${booking_date} at ${time_slot}`,
         html: buildConfirmationEmail({
