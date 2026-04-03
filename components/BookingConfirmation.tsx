@@ -172,7 +172,7 @@ export default function BookingConfirmation({ booking }: BookingConfirmationProp
       >
         <span className="text-lg leading-none mt-0.5">⚠️</span>
         <p className="text-sm leading-relaxed" style={{ color: "#7a5000" }}>
-          <strong>Important Reminder:</strong> Please do not leave the study room key inside the office — you may get locked out.
+          <strong>Important Reminder:</strong>{" "}Please do not leave the study room key inside the office — you may get locked out.
         </p>
       </div>
 

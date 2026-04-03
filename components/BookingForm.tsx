@@ -196,7 +196,7 @@ export default function BookingForm() {
       >
         <AlertTriangle className="mt-0.5 shrink-0" size={16} style={{ color: "#d9970c" }} />
         <p className="text-sm leading-relaxed" style={{ color: "#7a5000" }}>
-          <strong>Reminder:</strong> Please do not leave the study room key inside the office &mdash; you may get locked out.
+          <strong>Reminder:</strong>{" "}Please do not leave the study room key inside the office &mdash; you may get locked out.
         </p>
       </div>
 
