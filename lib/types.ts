@@ -24,9 +24,8 @@ export interface BlockedDate {
   created_at: string
 }
 
-// Working hours: 8:30 AM - 4:30 PM, last slot at 3:30 PM (1 hour duration)
+// Working hours: 9:30 AM - 4:30 PM, last slot at 3:30 PM (1 hour duration)
 export const TIME_SLOTS = [
-  "8:30 AM",
   "9:30 AM",
   "10:30 AM",
   "11:30 AM",

@@ -19,6 +19,11 @@ export const createBookingSchema = z.object({
     .string()
     .transform((val) => val.replace(/^0+/, "")) // Strip leading zeros
     .refine((val) => /^\d{7}$/.test(val), "Student number must be exactly 7 digits"),
+
+  phone_number: z
+    .string()
+    .regex(/^\d{10}$/, "Phone number must be exactly 10 digits (no spaces or dashes)")
+    .transform((val) => val.replace(/\D/g, "")), // Strip non-digits just in case
   
   student_email: z
     .string()

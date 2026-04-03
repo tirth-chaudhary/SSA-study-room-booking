@@ -17,7 +17,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       )
     }
 
-    const { student_name, student_number, student_email, booking_date, time_slot, reason } =
+    const { student_name, student_number, phone_number, student_email, booking_date, time_slot, reason } =
       validation.data
 
     const supabase = createAdminClient()
@@ -47,26 +47,51 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       }
     }
 
-    // Enforce 1-hour-per-day cap per student
-    const { data: existing, error: existingError } = await supabase
+    // Dual-identifier check: prevent booking if EITHER student_number OR phone_number already used on this date
+    const { data: existingByNumber, error: numberError } = await supabase
       .from("bookings")
-      .select("id")
+      .select("id, student_number, phone_number")
       .eq("student_number", student_number)
       .eq("booking_date", booking_date)
       .eq("status", "confirmed")
 
-    if (existingError) {
+    if (numberError) {
       return NextResponse.json(
         { success: false, error: "Database error checking availability" },
         { status: 500 }
       )
     }
 
-    if (existing && existing.length > 0) {
+    if (existingByNumber && existingByNumber.length > 0) {
       return NextResponse.json(
         {
           success: false,
           error: "You already have a booking on this date. Only 1 booking per day is allowed.",
+        },
+        { status: 409 }
+      )
+    }
+
+    // Also check by phone number
+    const { data: existingByPhone, error: phoneError } = await supabase
+      .from("bookings")
+      .select("id, student_number, phone_number")
+      .eq("phone_number", phone_number)
+      .eq("booking_date", booking_date)
+      .eq("status", "confirmed")
+
+    if (phoneError) {
+      return NextResponse.json(
+        { success: false, error: "Database error checking phone number availability" },
+        { status: 500 }
+      )
+    }
+
+    if (existingByPhone && existingByPhone.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "This phone number already has a booking on this date. Only 1 booking per person per day is allowed.",
         },
         { status: 409 }
       )
@@ -100,6 +125,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       .insert({
         student_name,
         student_number,
+        phone_number,
         student_email,
         booking_date,
         time_slot,
@@ -131,9 +157,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         await resend.emails.send({
           from: fromEmail,
           to: student_email,
-          subject: `Booking Confirmed – SSA Study Room on ${booking_date} at ${time_slot}`,
+          subject: `Booking Confirmed – Room 209E Armes on ${booking_date} at ${time_slot}`,
           html: buildConfirmationEmail({
             student_name,
+            phone_number,
             booking_date,
             time_slot,
             reason,
@@ -162,6 +189,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 
 function buildConfirmationEmail({
   student_name,
+  phone_number,
   booking_date,
   time_slot,
   reason,
@@ -170,6 +198,7 @@ function buildConfirmationEmail({
   cancelUrl,
 }: {
   student_name: string
+  phone_number: string
   booking_date: string
   time_slot: string
   reason: string
@@ -201,7 +230,7 @@ function buildConfirmationEmail({
           <tr>
             <td style="background:#1e63ad;padding:24px 32px;text-align:center;">
               <p style="margin:0 0 4px;color:rgba(255,255,255,0.65);font-size:11px;letter-spacing:2px;text-transform:uppercase;">Science Students&apos; Association &bull; University of Manitoba</p>
-              <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">Study Room Booking</h1>
+              <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">Room 209E Armes &ndash; Study Room Booking</h1>
             </td>
           </tr>
 
@@ -226,7 +255,7 @@ function buildConfirmationEmail({
             <td style="padding:24px 32px;">
               <p style="margin:0 0 20px;font-size:16px;color:#0f1f3d;">Hi <strong>${student_name}</strong>,</p>
               <p style="margin:0 0 24px;font-size:14px;color:#5a7299;line-height:1.7;">
-                Your SSA Study Room booking has been confirmed. Please arrive on time and follow room guidelines.
+                Your booking at <strong>Room 209E Armes, SSA Lounge</strong> has been confirmed. Please arrive on time and follow room guidelines. Show this confirmation email at the SSA window to pick up the room key.
               </p>
 
               <!-- Details card -->
@@ -243,14 +272,47 @@ function buildConfirmationEmail({
                         <strong style="color:#0f1f3d;font-size:15px;">${time_slot} &ndash; 1 hour</strong>
                       </td></tr>
                       <tr><td style="padding:8px 0;border-bottom:1px solid #c2d5f0;">
+                        <span style="color:#5a7299;font-size:12px;">Location</span><br>
+                        <strong style="color:#0f1f3d;font-size:15px;">Room 209E Armes, SSA Lounge</strong>
+                      </td></tr>
+                      <tr><td style="padding:8px 0;border-bottom:1px solid #c2d5f0;">
+                        <span style="color:#5a7299;font-size:12px;">Phone Number</span><br>
+                        <span style="color:#0f1f3d;font-size:15px;">${phone_number}</span>
+                      </td></tr>
+                      <tr><td style="padding:8px 0;border-bottom:1px solid #c2d5f0;">
                         <span style="color:#5a7299;font-size:12px;">Purpose</span><br>
-                        <span style="color:#0f1f3d;font-size:15px;">${reason}</span>
+                        <span style="color:#0f1f3d;font-size:15px;">${reason || "(Not provided)"}</span>
                       </td></tr>
                       <tr><td style="padding:8px 0;">
                         <span style="color:#5a7299;font-size:12px;">Booking Reference</span><br>
                         <span style="color:#1e63ad;font-size:16px;font-weight:700;font-family:monospace;">${displayRef}</span>
                       </td></tr>
                     </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Room Agreement -->
+              <table role="presentation" width="100%" style="background:#fff8e1;border:1px solid #fbb315;border-radius:10px;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:16px 18px;">
+                    <p style="margin:0 0 8px;color:#7a5000;font-size:14px;font-weight:700;">Room Agreement:</p>
+                    <p style="margin:0;color:#7a5000;font-size:13px;line-height:1.6;">
+                      ✓ Return the key to the SSA window<br>
+                      ✓ Limit occupancy to 6 people<br>
+                      ✓ No food in the room
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Pickup Instructions -->
+              <table role="presentation" width="100%" style="background:#e8f0fb;border:1px solid #c2d5f0;border-radius:10px;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:16px 18px;">
+                    <p style="margin:0;color:#5a7299;font-size:13px;line-height:1.6;">
+                      Please show this email at the SSA window to get the study room key.
+                    </p>
                   </td>
                 </tr>
               </table>

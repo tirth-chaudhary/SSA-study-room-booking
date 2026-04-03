@@ -48,9 +48,11 @@ export default function BookingForm() {
   const [form, setForm] = useState({
     student_name: "",
     student_number: "",
+    phone_number: "",
     student_email: "",
     reason: "",
   })
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmedBooking, setConfirmedBooking] = useState<Record<string, unknown> | null>(null)
@@ -128,6 +130,10 @@ export default function BookingForm() {
       setError("Name cannot contain numbers.")
       return
     }
+    if (!agreedToTerms) {
+      setError("You must agree to the room agreement before booking.")
+      return
+    }
     setSubmitting(true)
     setError(null)
     const res = await fetch("/api/bookings", {
@@ -190,7 +196,7 @@ export default function BookingForm() {
       >
         <AlertTriangle className="mt-0.5 shrink-0" size={16} style={{ color: "#d9970c" }} />
         <p className="text-sm leading-relaxed" style={{ color: "#7a5000" }}>
-          <strong>Reminder:</strong> Please do not leave a key inside the office &mdash; you may get locked out.
+          <strong>Reminder:</strong>{" "}Please do not leave the study room key inside the office &mdash; you may get locked out.
         </p>
       </div>
 
@@ -383,7 +389,7 @@ export default function BookingForm() {
                 <Input
                   id="student_name"
                   required
-                  placeholder="Jane Smith"
+                  placeholder="Billy Bison"
                   value={form.student_name}
                   onChange={(e) => {
                     const val = e.target.value
@@ -404,10 +410,27 @@ export default function BookingForm() {
                 <Input
                   id="student_number"
                   required
-                  placeholder="e.g. 123456789"
+                  placeholder="e.g. 1234567"
                   value={form.student_number}
                   onChange={(e) => setForm({ ...form, student_number: e.target.value })}
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="phone_number" className="text-sm font-medium flex items-center gap-1.5 mb-1.5">
+                  <Hash size={13} className="text-muted-foreground" />
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone_number"
+                  required
+                  placeholder="e.g. 2041234567"
+                  value={form.phone_number}
+                  onChange={(e) => setForm({ ...form, phone_number: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  10-digit phone number (no spaces or dashes required)
+                </p>
               </div>
 
               <div>
@@ -419,7 +442,7 @@ export default function BookingForm() {
                   id="student_email"
                   type="email"
                   required
-                  placeholder="jane@university.ca"
+                  placeholder="billy.bison@myumanitoba.ca"
                   value={form.student_email}
                   onChange={(e) => setForm({ ...form, student_email: e.target.value })}
                 />
@@ -452,6 +475,22 @@ export default function BookingForm() {
               </div>
             )}
 
+            {/* Agreement checkbox */}
+            <div className="rounded-xl p-4 space-y-3" style={{ background: "#fff8e1", border: "1px solid #fbb315" }}>
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="agree_terms"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded cursor-pointer accent-yellow-600"
+                />
+                <label htmlFor="agree_terms" className="text-sm leading-relaxed cursor-pointer" style={{ color: "#7a5000" }}>
+                  <strong>Room Agreement:</strong> I agree to return the key to the SSA window, limit occupancy to 6 people, and bring no food into the room.
+                </label>
+              </div>
+            </div>
+
             {/* Booking summary */}
             <div
               className="rounded-xl p-4 space-y-1.5"
@@ -472,8 +511,8 @@ export default function BookingForm() {
 
             <Button
               type="submit"
-              disabled={submitting}
-              className="w-full font-semibold h-11 text-white shadow-md hover:opacity-90 transition-opacity"
+              disabled={submitting || !agreedToTerms}
+              className="w-full font-semibold h-11 text-white shadow-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: "#1e63ad" }}
             >
               {submitting ? (
