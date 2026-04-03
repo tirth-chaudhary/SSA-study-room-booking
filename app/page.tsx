@@ -1,7 +1,11 @@
-import BookingForm from "@/components/BookingForm"
+import dynamic from "next/dynamic"
 import { LogIn } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+
+// Disable SSR entirely for the booking form — it uses Date.now() for calendar
+// rendering which causes server/client HTML mismatches (hydration errors).
+const BookingForm = dynamic(() => import("@/components/BookingForm"), { ssr: false })
 
 export default function Home() {
   return (
@@ -80,7 +84,7 @@ export default function Home() {
               className="opacity-40"
             />
             <p className="text-xs text-muted-foreground">
-              &copy; {new Date().getFullYear()} Science Students&apos; Association &bull; University of Manitoba
+              &copy; 2025 Science Students&apos; Association &bull; University of Manitoba
             </p>
           </div>
           <p className="text-xs text-muted-foreground">Questions? Contact the SSA office.</p>
