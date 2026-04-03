@@ -37,9 +37,7 @@ function getFirstDayOfMonth(year: number, month: number) {
 }
 
 export default function BookingForm() {
-  const today = startOfDay(new Date())
-  const [viewYear, setViewYear] = useState(today.getFullYear())
-  const [viewMonth, setViewMonth] = useState(today.getMonth())
+  const [mounted, setMounted] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
@@ -54,6 +52,20 @@ export default function BookingForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmedBooking, setConfirmedBooking] = useState<Record<string, unknown> | null>(null)
+
+  // Client-side only values
+  const [today, setToday] = useState<Date>(() => startOfDay(new Date()))
+  const [viewYear, setViewYear] = useState(() => new Date().getFullYear())
+  const [viewMonth, setViewMonth] = useState(() => new Date().getMonth())
+
+  // Mark as mounted after hydration
+  useEffect(() => {
+    const now = startOfDay(new Date())
+    setToday(now)
+    setViewYear(now.getFullYear())
+    setViewMonth(now.getMonth())
+    setMounted(true)
+  }, [])
 
   // Fetch available slots when date is selected
   useEffect(() => {
@@ -91,7 +103,8 @@ export default function BookingForm() {
 
   const handleDayClick = (day: number) => {
     const date = new Date(viewYear, viewMonth, day)
-    if (isBefore(date, today) || isWeekend(date)) return
+    const maxDate = addDays(today, MAX_BOOKING_DAYS_AHEAD)
+    if (isBefore(date, today) || isAfter(date, maxDate) || isWeekend(date)) return
     setSelectedDate(date)
     setError(null)
   }
@@ -139,6 +152,16 @@ export default function BookingForm() {
           cancellation_token: string
         }}
       />
+    )
+  }
+
+  // Show loading skeleton until client-side hydration completes
+  if (!mounted) {
+    return (
+      <div className="space-y-6">
+        <div className="h-16 rounded-lg bg-muted animate-pulse" />
+        <div className="h-80 rounded-xl bg-muted animate-pulse" />
+      </div>
     )
   }
 
