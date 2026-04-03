@@ -1,11 +1,7 @@
-import dynamic from "next/dynamic"
+import BookingForm from "@/components/BookingForm"
 import { LogIn } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-
-// Disable SSR entirely for the booking form — it uses Date.now() for calendar
-// rendering which causes server/client HTML mismatches (hydration errors).
-const BookingForm = dynamic(() => import("@/components/BookingForm"), { ssr: false })
 
 export default function Home() {
   return (
@@ -23,7 +19,6 @@ export default function Home() {
                 height={40}
                 className="object-contain"
                 priority
-                loading="eager"
               />
             </div>
             <div>
