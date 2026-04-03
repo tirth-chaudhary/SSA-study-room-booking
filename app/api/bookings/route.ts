@@ -92,10 +92,13 @@ export async function POST(req: NextRequest) {
 
       const resend = new Resend(process.env.RESEND_API_KEY)
 
+      // Use RESEND_FROM_EMAIL if set, otherwise use Resend's test domain (doesn't require verification)
+      // IMPORTANT: RESEND_FROM_EMAIL should be an email address like "noreply@yourdomain.com" or "SSA Study Room <noreply@yourdomain.com>"
+      // DO NOT put your API key in RESEND_FROM_EMAIL
+      const fromEmail = process.env.RESEND_FROM_EMAIL || "SSA Study Room <onboarding@resend.dev>"
+      
       await resend.emails.send({
-        from:
-          process.env.RESEND_FROM_EMAIL ||
-          "SSA Study Room <onboarding@resend.dev>",
+        from: fromEmail,
         to: student_email,
         subject: `Booking Confirmed – SSA Study Room on ${booking_date} at ${time_slot}`,
         html: buildConfirmationEmail({

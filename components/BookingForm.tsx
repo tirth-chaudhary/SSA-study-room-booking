@@ -53,12 +53,12 @@ export default function BookingForm() {
   const [error, setError] = useState<string | null>(null)
   const [confirmedBooking, setConfirmedBooking] = useState<Record<string, unknown> | null>(null)
 
-  // Client-side only values
-  const [today, setToday] = useState<Date>(() => startOfDay(new Date()))
-  const [viewYear, setViewYear] = useState(() => new Date().getFullYear())
-  const [viewMonth, setViewMonth] = useState(() => new Date().getMonth())
+  // Client-side only state - initialize in effect to avoid hydration mismatch
+  const [today, setToday] = useState<Date | null>(null)
+  const [viewYear, setViewYear] = useState<number>(2025)
+  const [viewMonth, setViewMonth] = useState<number>(0)
 
-  // Mark as mounted after hydration
+  // Initialize date only on client side
   useEffect(() => {
     const now = startOfDay(new Date())
     setToday(now)
@@ -156,7 +156,7 @@ export default function BookingForm() {
   }
 
   // Show loading skeleton until client-side hydration completes
-  if (!mounted) {
+  if (!mounted || !today) {
     return (
       <div className="space-y-6">
         <div className="h-16 rounded-lg bg-muted animate-pulse" />
