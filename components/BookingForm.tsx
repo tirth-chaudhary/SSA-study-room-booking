@@ -115,10 +115,6 @@ export default function BookingForm() {
       setError("Please select a date and time slot.")
       return
     }
-    if (!form.student_email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      setError("Please enter a valid email address.")
-      return
-    }
     setSubmitting(true)
     setError(null)
     const res = await fetch("/api/bookings", {
@@ -132,10 +128,12 @@ export default function BookingForm() {
     })
     const data = await res.json()
     setSubmitting(false)
-    if (!res.ok) {
+    
+    // Handle standardized API response
+    if (!data.success) {
       setError(data.error || "Something went wrong. Please try again.")
     } else {
-      setConfirmedBooking(data.booking)
+      setConfirmedBooking(data.data)
     }
   }
 

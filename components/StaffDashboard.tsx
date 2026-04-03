@@ -70,9 +70,13 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
 
   const fetchBookings = useCallback(async () => {
     setLoading(true)
-    const res = await fetch(`/api/staff/bookings?password=${encodeURIComponent(password)}`)
+    const res = await fetch("/api/admin/bookings", {
+      headers: {
+        Authorization: `Bearer ${password}`,
+      },
+    })
     const data = await res.json()
-    setBookings(data.bookings || [])
+    setBookings(data.success && data.data ? data.data : [])
     setLoading(false)
   }, [password])
 
@@ -121,10 +125,13 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
   const handleSave = async () => {
     if (!editingBooking) return
     setSaving(true)
-    const res = await fetch("/api/staff/bookings", {
+    const res = await fetch(`/api/admin/bookings/${editingBooking.id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password, id: editingBooking.id, ...editForm }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${password}`,
+      },
+      body: JSON.stringify(editForm),
     })
     setSaving(false)
     if (res.ok) {
@@ -135,20 +142,24 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
 
   const handleDelete = async (id: string) => {
     if (!confirm("Permanently delete this booking? This cannot be undone.")) return
-    await fetch("/api/staff/bookings", {
+    await fetch(`/api/admin/bookings/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password, id }),
+      headers: {
+        Authorization: `Bearer ${password}`,
+      },
     })
     fetchBookings()
   }
 
   const handleCancelOverride = async (booking: Booking) => {
     if (!confirm(`Cancel booking for ${booking.student_name}?`)) return
-    await fetch("/api/staff/bookings", {
+    await fetch(`/api/admin/bookings/${booking.id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password, id: booking.id, status: "cancelled" }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${password}`,
+      },
+      body: JSON.stringify({ status: "cancelled" }),
     })
     fetchBookings()
   }

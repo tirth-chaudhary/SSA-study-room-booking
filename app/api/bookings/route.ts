@@ -1,116 +1,138 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { createBookingSchema, type ApiResponse } from "@/lib/validation"
 import { Resend } from "resend"
 
-export async function POST(req: NextRequest) {
-  const body = await req.json()
-  const {
-    student_name,
-    student_number,
-    student_email,
-    booking_date,
-    time_slot,
-    reason,
-  } = body
+export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
+  try {
+    const body = await req.json()
 
-  if (
-    !student_name ||
-    !student_number ||
-    !student_email ||
-    !booking_date ||
-    !time_slot ||
-    !reason
-  ) {
-    return NextResponse.json(
-      { error: "All fields are required" },
-      { status: 400 }
-    )
-  }
-
-  const supabase = createAdminClient()
-
-  // Enforce 1-hour-per-day cap per student
-  const { data: existing } = await supabase
-    .from("bookings")
-    .select("id")
-    .eq("student_number", student_number)
-    .eq("booking_date", booking_date)
-    .eq("status", "confirmed")
-
-  if (existing && existing.length > 0) {
-    return NextResponse.json(
-      {
-        error:
-          "You already have a booking on this date. Only 1 booking per day is allowed.",
-      },
-      { status: 409 }
-    )
-  }
-
-  // Check time slot is still available
-  const { data: slotTaken } = await supabase
-    .from("bookings")
-    .select("id")
-    .eq("booking_date", booking_date)
-    .eq("time_slot", time_slot)
-    .eq("status", "confirmed")
-
-  if (slotTaken && slotTaken.length > 0) {
-    return NextResponse.json(
-      { error: "This time slot has just been taken. Please choose another." },
-      { status: 409 }
-    )
-  }
-
-  const { data: booking, error } = await supabase
-    .from("bookings")
-    .insert({
-      student_name,
-      student_number,
-      student_email,
-      booking_date,
-      time_slot,
-      duration_hours: 1,
-      reason,
-      status: "confirmed",
-    })
-    .select()
-    .single()
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  // Send confirmation email via Resend
-  if (process.env.RESEND_API_KEY) {
-    try {
-      const origin =
-        process.env.NEXT_PUBLIC_APP_URL ||
-        req.headers.get("origin") ||
-        "http://localhost:3000"
-      const cancelUrl = `${origin}/cancel/${booking.cancellation_token}`
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      const fromEmail = process.env.RESEND_FROM_EMAIL || "SSA Study Room <onboarding@resend.dev>"
-      await resend.emails.send({
-        from: fromEmail,
-        to: student_email,
-        subject: `Booking Confirmed – SSA Study Room on ${booking_date} at ${time_slot}`,
-        html: buildConfirmationEmail({
-          student_name,
-          booking_date,
-          time_slot,
-          reason,
-          booking_id: booking.id,
-          booking_number: booking.booking_number,
-          cancelUrl,
-        }),
-      })
-    } catch {
-      // Email failure is non-blocking — booking is still created
+    // Validate with Zod
+    const validation = createBookingSchema.safeParse(body)
+    if (!validation.success) {
+      const errorMessage = validation.error.errors[0]?.message || "Validation failed"
+      return NextResponse.json(
+        { success: false, error: errorMessage },
+        { status: 400 }
+      )
     }
-  }
 
-  return NextResponse.json({ booking }, { status: 201 })
+    const { student_name, student_number, student_email, booking_date, time_slot, reason } =
+      validation.data
+
+    const supabase = createAdminClient()
+
+    // Enforce 1-hour-per-day cap per student
+    const { data: existing, error: existingError } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("student_number", student_number)
+      .eq("booking_date", booking_date)
+      .eq("status", "confirmed")
+
+    if (existingError) {
+      return NextResponse.json(
+        { success: false, error: "Database error checking availability" },
+        { status: 500 }
+      )
+    }
+
+    if (existing && existing.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "You already have a booking on this date. Only 1 booking per day is allowed.",
+        },
+        { status: 409 }
+      )
+    }
+
+    // Check if time slot is available
+    const { data: slotTaken, error: slotError } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("booking_date", booking_date)
+      .eq("time_slot", time_slot)
+      .eq("status", "confirmed")
+
+    if (slotError) {
+      return NextResponse.json(
+        { success: false, error: "Database error checking slot availability" },
+        { status: 500 }
+      )
+    }
+
+    if (slotTaken && slotTaken.length > 0) {
+      return NextResponse.json(
+        { success: false, error: "This time slot has just been taken. Please choose another." },
+        { status: 409 }
+      )
+    }
+
+    // Create booking
+    const { data: booking, error: bookingError } = await supabase
+      .from("bookings")
+      .insert({
+        student_name,
+        student_number,
+        student_email,
+        booking_date,
+        time_slot,
+        duration_hours: 1,
+        reason,
+        status: "confirmed",
+      })
+      .select()
+      .single()
+
+    if (bookingError) {
+      return NextResponse.json(
+        { success: false, error: "Failed to create booking" },
+        { status: 500 }
+      )
+    }
+
+    // Send confirmation email via Resend
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const origin =
+          process.env.NEXT_PUBLIC_APP_URL ||
+          req.headers.get("origin") ||
+          "http://localhost:3000"
+        const cancelUrl = `${origin}/api/bookings/cancel/${booking.cancellation_token}`
+        const resend = new Resend(process.env.RESEND_API_KEY)
+        const fromEmail =
+          process.env.RESEND_FROM_EMAIL || "SSA Study Room <onboarding@resend.dev>"
+        await resend.emails.send({
+          from: fromEmail,
+          to: student_email,
+          subject: `Booking Confirmed – SSA Study Room on ${booking_date} at ${time_slot}`,
+          html: buildConfirmationEmail({
+            student_name,
+            booking_date,
+            time_slot,
+            reason,
+            booking_id: booking.id,
+            booking_number: booking.booking_number,
+            cancelUrl,
+          }),
+        })
+      } catch {
+        // Email failure is non-blocking — booking is still created
+      }
+    }
+
+    return NextResponse.json(
+      { success: true, data: booking },
+      { status: 201 }
+    )
+  } catch (error) {
+    console.error("[bookings API] Error:", error)
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    )
+  }
 }
 
 function buildConfirmationEmail({
@@ -131,7 +153,10 @@ function buildConfirmationEmail({
   cancelUrl: string
 }) {
   const formatted = new Date(booking_date + "T12:00:00").toLocaleDateString("en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   })
   const displayRef = booking_number ? `#${booking_number}` : `#${booking_id.slice(0, 6).toUpperCase()}`
 
