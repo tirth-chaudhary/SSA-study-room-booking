@@ -310,11 +310,8 @@ function buildConfirmationEmail({
               <table role="presentation" width="100%" style="background:#e8f0fb;border:1px solid #c2d5f0;border-radius:10px;margin-bottom:24px;">
                 <tr>
                   <td style="padding:16px 18px;">
-                    <p style="margin:0 0 8px;color:#0f1f3d;font-size:14px;font-weight:700;">How to Get the Room Key:</p>
                     <p style="margin:0;color:#5a7299;font-size:13px;line-height:1.6;">
-                      1. Check your inbox for this confirmation email<br>
-                      2. <strong>First-time users:</strong> Check Junk/Spam folder if not found<br>
-                      3. Show this email at the SSA window to get the key
+                      Please show this email at the SSA window to get the study room key.
                     </p>
                   </td>
                 </tr>

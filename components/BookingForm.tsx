@@ -196,7 +196,7 @@ export default function BookingForm() {
       >
         <AlertTriangle className="mt-0.5 shrink-0" size={16} style={{ color: "#d9970c" }} />
         <p className="text-sm leading-relaxed" style={{ color: "#7a5000" }}>
-          <strong>Reminder:</strong> Please do not leave a key inside the office &mdash; you may get locked out.
+          <strong>Reminder:</strong> Please do not leave the study room key inside the office &mdash; you may get locked out.
         </p>
       </div>
 
@@ -389,7 +389,7 @@ export default function BookingForm() {
                 <Input
                   id="student_name"
                   required
-                  placeholder="Jane Smith"
+                  placeholder="Billy Bison"
                   value={form.student_name}
                   onChange={(e) => {
                     const val = e.target.value
@@ -410,7 +410,7 @@ export default function BookingForm() {
                 <Input
                   id="student_number"
                   required
-                  placeholder="e.g. 123456789"
+                  placeholder="e.g. 1234567"
                   value={form.student_number}
                   onChange={(e) => setForm({ ...form, student_number: e.target.value })}
                 />
@@ -442,7 +442,7 @@ export default function BookingForm() {
                   id="student_email"
                   type="email"
                   required
-                  placeholder="jane@university.ca"
+                  placeholder="billy.bison@myumanitoba.ca"
                   value={form.student_email}
                   onChange={(e) => setForm({ ...form, student_email: e.target.value })}
                 />
