@@ -111,6 +111,18 @@ export default function BookingConfirmation({ booking }: BookingConfirmationProp
         </p>
       </div>
 
+      {/* Spam/Junk Alert */}
+      <div
+        className="rounded-xl p-4 flex items-start gap-3"
+        style={{ background: "#fff8e1", border: "1px solid #fbb315" }}
+      >
+        <span className="text-lg leading-none mt-0.5 shrink-0">📧</span>
+        <div className="text-sm" style={{ color: "#7a5000" }}>
+          <p className="font-semibold mb-1">Check your inbox</p>
+          <p>Find the booking confirmation email and show it at the SSA window to get the room key. For first-time users, please check your Junk/Spam folder.</p>
+        </div>
+      </div>
+
       {/* Booking reference badge */}
       <div
         className="flex items-center justify-center gap-2 py-2 px-4 rounded-xl mx-auto w-fit"

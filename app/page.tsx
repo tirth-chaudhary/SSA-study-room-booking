@@ -50,7 +50,7 @@ export default function Home() {
             Reserve Your Study Space
           </h2>
           <p className="text-sm text-white/80 leading-relaxed">
-            Book the SSA study room &mdash; weekdays only, 8:30 AM to 4:30 PM.{" "}
+            Book Room 209E Armes &mdash; weekdays only, 9:30 AM to 4:30 PM.{" "}
             Up to <strong className="text-white">1 hour per person per day</strong>, up to 1 week ahead.
           </p>
         </div>
@@ -79,10 +79,10 @@ export default function Home() {
               className="opacity-40"
             />
             <p className="text-xs text-muted-foreground">
-              &copy; 2025 Science Students&apos; Association &bull; University of Manitoba
+              &copy; Tirth Chaudhary, Science Students&apos; Association 2026
             </p>
           </div>
-          <p className="text-xs text-muted-foreground">Questions? Contact the SSA office.</p>
+          <p className="text-xs text-muted-foreground">Room 209E Armes, SSA Lounge</p>
         </div>
       </footer>
     </main>
