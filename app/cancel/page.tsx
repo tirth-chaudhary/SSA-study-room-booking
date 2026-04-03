@@ -40,7 +40,7 @@ function CancelPageInner() {
       setLoading(false)
       return
     }
-    fetch(`/api/cancel?bookingid=${token}`)
+    fetch(`/api/bookings/cancel/${token}`)
       .then((r) => {
         if (r.status === 404) {
           setNotFound(true)
@@ -49,9 +49,9 @@ function CancelPageInner() {
         return r.json()
       })
       .then((data) => {
-        if (data?.booking) {
-          setBooking(data.booking)
-          if (data.booking.status === "cancelled") {
+        if (data?.success && data?.data) {
+          setBooking(data.data)
+          if (data.data.status === "cancelled") {
             setCancelled(true)
           }
         }
@@ -63,10 +63,12 @@ function CancelPageInner() {
     if (!confirm("Are you sure you want to cancel this booking?")) return
     setCancelling(true)
     setError(null)
-    const res = await fetch(`/api/cancel?bookingid=${token}`, { method: "POST" })
+    const res = await fetch(`/api/bookings/cancel/${token}`, { method: "POST" })
     const data = await res.json()
     setCancelling(false)
-    if (!res.ok) {
+    
+    // Handle standardized API response
+    if (!data.success) {
       setError(data.error || "Failed to cancel booking.")
     } else {
       setCancelled(true)

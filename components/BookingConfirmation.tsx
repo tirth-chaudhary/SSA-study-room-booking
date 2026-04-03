@@ -38,8 +38,8 @@ export default function BookingConfirmation({ booking }: BookingConfirmationProp
 
   const cancelUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/cancel/${booking.cancellation_token}`
-      : `/cancel/${booking.cancellation_token}`
+      ? `${window.location.origin}/cancel?bookingid=${booking.cancellation_token}`
+      : `/cancel?bookingid=${booking.cancellation_token}`
 
   const displayId = booking.booking_number
     ? `#${booking.booking_number}`
@@ -55,12 +55,14 @@ export default function BookingConfirmation({ booking }: BookingConfirmationProp
     if (!confirm("Are you sure you want to cancel this booking?")) return
     setCancelling(true)
     setCancelError(null)
-    const res = await fetch(`/api/cancel/${booking.cancellation_token}`, {
+    const res = await fetch(`/api/bookings/cancel/${booking.cancellation_token}`, {
       method: "POST",
     })
     const data = await res.json()
     setCancelling(false)
-    if (!res.ok) {
+    
+    // Handle standardized API response
+    if (!data.success) {
       setCancelError(data.error || "Failed to cancel booking.")
     } else {
       setCancelled(true)

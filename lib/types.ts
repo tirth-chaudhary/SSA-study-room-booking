@@ -9,9 +9,17 @@ export interface Booking {
   booking_date: string
   time_slot: string
   duration_hours: number
-  reason: string
+  reason?: string | null
   status: BookingStatus
   cancellation_token: string
+  created_at: string
+}
+
+export interface BlockedDate {
+  id: string
+  date: string
+  reason?: string | null
+  created_by?: string | null
   created_at: string
 }
 
