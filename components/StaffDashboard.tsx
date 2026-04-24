@@ -25,7 +25,6 @@ import {
   List,
   LogOut,
   Pencil,
-  Trash2,
   X,
   Check,
   Users,
@@ -70,6 +69,7 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
   const [saving, setSaving] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState<"all" | "confirmed" | "cancelled">("all")
+  const [statsDate, setStatsDate] = useState(new Date())
 
   // Blocked dates state
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([])
@@ -152,11 +152,13 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
   const allBookingsForDate = (date: Date) =>
     bookings.filter((b) => b.booking_date === format(date, "yyyy-MM-dd"))
 
-  // Stats
-  const totalConfirmed = bookings.filter((b) => b.status === "confirmed").length
-  const totalCancelled = bookings.filter((b) => b.status === "cancelled").length
-  const todayBookings = bookings.filter(
-    (b) => b.booking_date === format(new Date(), "yyyy-MM-dd") && b.status === "confirmed"
+  // Stats for selected statsDate
+  const statsDateStr = format(statsDate, "yyyy-MM-dd")
+  const activeBookingsForDate = bookings.filter(
+    (b) => b.booking_date === statsDateStr && b.status === "confirmed"
+  ).length
+  const cancelledBookingsForDate = bookings.filter(
+    (b) => b.booking_date === statsDateStr && b.status === "cancelled"
   ).length
 
   // Filtered list view
@@ -200,17 +202,6 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
       setEditingBooking(null)
       fetchBookings()
     }
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Permanently delete this booking? This cannot be undone.")) return
-    await fetch(`/api/admin/bookings/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${password}`,
-      },
-    })
-    fetchBookings()
   }
 
   const handleCancelOverride = async (booking: Booking) => {
@@ -301,12 +292,6 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
             <XCircle size={9} /> Cancel
           </button>
         )}
-        <button
-          onClick={() => handleDelete(b.id)}
-          className="text-[10px] font-medium text-red-500 flex items-center gap-0.5 hover:underline"
-        >
-          <Trash2 size={9} /> Delete
-        </button>
       </div>
     </div>
   )
@@ -562,9 +547,6 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
                                 <XCircle size={11} /> Cancel
                               </button>
                             )}
-                            <button onClick={() => handleDelete(b.id)} className="text-xs font-medium text-red-500 flex items-center gap-1 hover:underline">
-                              <Trash2 size={11} /> Delete
-                            </button>
                           </div>
                         </div>
                       ))}
@@ -670,23 +652,49 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
       </header>
 
       <div className="max-w-6xl mx-auto px-4 py-5 space-y-5">
-        {/* Stats bar */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { icon: <Users size={18} />, value: totalConfirmed, label: "Active Bookings", color: "#1e63ad", bg: "#e8f0fb" },
-            { icon: <CheckCircle2 size={18} />, value: todayBookings, label: "Today", color: "#16a34a", bg: "#dcfce7" },
-            { icon: <XCircle size={18} />, value: totalCancelled, label: "Cancelled", color: "#dc2626", bg: "#fee2e2" },
-          ].map(({ icon, value, label, color, bg }) => (
-            <div key={label} className="rounded-2xl bg-white border p-4 flex items-center gap-3 shadow-sm" style={{ borderColor: "#d0ddf0" }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg, color }}>
-                {icon}
-              </div>
-              <div>
-                <p className="text-2xl font-bold" style={{ color: "#0f1f3d" }}>{value}</p>
-                <p className="text-xs" style={{ color: "#5a7299" }}>{label}</p>
-              </div>
+        {/* Stats bar with date navigation */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          {/* Date navigator */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setStatsDate((d) => subDays(d, 1))}
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: "#1e63ad", color: "#fff" }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={() => setStatsDate((d) => addDays(d, 1))}
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: "#1e63ad", color: "#fff" }}
+            >
+              <ChevronRight size={16} />
+            </button>
+            <div
+              className="px-4 py-2 rounded-lg border text-sm font-medium"
+              style={{ borderColor: "#d0ddf0", color: "#0f1f3d", background: "#fff" }}
+            >
+              {format(statsDate, "EEEE, MMM d")}
             </div>
-          ))}
+          </div>
+
+          {/* Stats cards */}
+          <div className="flex gap-3 flex-1">
+            {[
+              { icon: <Users size={18} />, value: activeBookingsForDate, label: "Active Bookings", color: "#1e63ad", bg: "#e8f0fb" },
+              { icon: <XCircle size={18} />, value: cancelledBookingsForDate, label: "Cancelled", color: "#dc2626", bg: "#fee2e2" },
+            ].map(({ icon, value, label, color, bg }) => (
+              <div key={label} className="rounded-2xl bg-white border p-4 flex items-center gap-3 shadow-sm flex-1" style={{ borderColor: "#d0ddf0" }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: bg, color }}>
+                  {icon}
+                </div>
+                <div>
+                  <p className="text-2xl font-bold" style={{ color: "#0f1f3d" }}>{value}</p>
+                  <p className="text-xs" style={{ color: "#5a7299" }}>{label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Navigation bar (for calendar views) */}
@@ -944,9 +952,6 @@ export default function StaffDashboard({ password, onLogout }: StaffDashboardPro
                                     <XCircle size={14} />
                                   </button>
                                 )}
-                                <button onClick={() => handleDelete(b.id)} className="text-red-500" title="Delete">
-                                  <Trash2 size={14} />
-                                </button>
                               </div>
                             </td>
                           </tr>

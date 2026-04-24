@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { type ApiResponse } from "@/lib/validation"
 
-type RouteParams = { params: { id: string } }
-
 // Helper: Extract and validate Authorization Bearer token
 function getAuthToken(req: NextRequest): string | null {
   const authHeader = req.headers.get("Authorization")
@@ -22,7 +20,7 @@ function verifyAuth(token: string): boolean {
 // PATCH /api/admin/bookings/[id] - Update booking
 export async function PATCH(
   req: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<ApiResponse>> {
   try {
     const token = getAuthToken(req)
@@ -33,7 +31,7 @@ export async function PATCH(
       )
     }
 
-    const { id } = params
+    const { id } = await params
     const body = await req.json()
 
     // Remove auth token from update payload if present
@@ -48,6 +46,7 @@ export async function PATCH(
       .single()
 
     if (error) {
+      console.error("[admin PATCH] Supabase error:", error)
       return NextResponse.json(
         { success: false, error: "Failed to update booking" },
         { status: 500 }
@@ -57,42 +56,6 @@ export async function PATCH(
     return NextResponse.json({ success: true, data: booking })
   } catch (error) {
     console.error("[admin PATCH] Error:", error)
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    )
-  }
-}
-
-// DELETE /api/admin/bookings/[id] - Delete booking
-export async function DELETE(
-  req: NextRequest,
-  { params }: RouteParams
-): Promise<NextResponse<ApiResponse>> {
-  try {
-    const token = getAuthToken(req)
-    if (!token || !verifyAuth(token)) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized: Invalid or missing authentication" },
-        { status: 401 }
-      )
-    }
-
-    const { id } = params
-
-    const supabase = createAdminClient()
-    const { error } = await supabase.from("bookings").delete().eq("id", id)
-
-    if (error) {
-      return NextResponse.json(
-        { success: false, error: "Failed to delete booking" },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({ success: true, data: { id, deleted: true } })
-  } catch (error) {
-    console.error("[admin DELETE] Error:", error)
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }
