@@ -97,6 +97,31 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       )
     }
 
+    // Also check by email
+    const { data: existingByEmail, error: emailError } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("student_email", student_email)
+      .eq("booking_date", booking_date)
+      .eq("status", "confirmed")
+
+    if (emailError) {
+      return NextResponse.json(
+        { success: false, error: "Database error checking email availability" },
+        { status: 500 }
+      )
+    }
+
+    if (existingByEmail && existingByEmail.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "This email already has a booking on this date. Only 1 booking per person per day is allowed.",
+        },
+        { status: 409 }
+      )
+    }
+
     // Check if time slot is available
     const { data: slotTaken, error: slotError } = await supabase
       .from("bookings")
