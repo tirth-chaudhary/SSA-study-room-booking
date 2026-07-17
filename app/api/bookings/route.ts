@@ -3,6 +3,44 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { createBookingSchema, type ApiResponse } from "@/lib/validation"
 import { Resend } from "resend"
 
+// University of Manitoba is in the America/Winnipeg (Central) timezone.
+const TIMEZONE = "America/Winnipeg"
+
+function slotToMinutes(slot: string): number {
+  const m = slot.match(/(\d+):(\d+)\s*(AM|PM)/i)
+  if (!m) return 0
+  let hour = parseInt(m[1], 10)
+  const min = parseInt(m[2], 10)
+  const ap = m[3].toUpperCase()
+  if (ap === "PM" && hour !== 12) hour += 12
+  if (ap === "AM" && hour === 12) hour = 0
+  return hour * 60 + min
+}
+
+// Returns true if the given date+slot is today (Winnipeg) and its start time has passed.
+function isPastSlot(date: string, slot: string): boolean {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date())
+
+  const map: Record<string, string> = {}
+  for (const p of parts) map[p.type] = p.value
+
+  let hour = parseInt(map.hour, 10)
+  if (hour === 24) hour = 0
+  const nowDate = `${map.year}-${map.month}-${map.day}`
+  const nowMinutes = hour * 60 + parseInt(map.minute, 10)
+
+  if (date !== nowDate) return false
+  return slotToMinutes(slot) <= nowMinutes
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
     const body = await req.json()
@@ -19,6 +57,17 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 
     const { student_name, student_number, phone_number, student_email, booking_date, time_slot, reason } =
       validation.data
+
+    // Reject slots that have already started (only relevant for today, in Winnipeg time)
+    if (isPastSlot(booking_date, time_slot)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "This time slot has already passed. Please choose a later time.",
+        },
+        { status: 409 }
+      )
+    }
 
     const supabase = createAdminClient()
 
