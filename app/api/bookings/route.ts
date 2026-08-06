@@ -304,7 +304,7 @@ function buildConfirmationText({
     "Reminder: Please do not leave the study room key inside the office — you may get locked out.",
     "",
     `To cancel your booking, use this link: ${cancelUrl}`,
-  ].join("\\n")
+  ].join("\n")
 }
 
 function buildConfirmationEmail({
