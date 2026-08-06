@@ -228,21 +228,38 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         const resend = new Resend(process.env.RESEND_API_KEY)
         const fromEmail =
           process.env.RESEND_FROM_EMAIL || "SSA Study Room <onboarding@resend.dev>"
-        await resend.emails.send({
+        const confirmationSubject = `Booking Confirmed – Room 209E Armes on ${booking_date} at ${time_slot}`
+        const confirmationHtml = buildConfirmationEmail({
+          student_name,
+          phone_number,
+          booking_date,
+          time_slot,
+          reason,
+          booking_id: booking.id,
+          booking_number: booking.booking_number,
+          cancelUrl,
+        })
+
+        const { data: emailData, error: emailError } = await resend.emails.send({
           from: fromEmail,
           to: student_email,
-          subject: `Booking Confirmed – Room 209E Armes on ${booking_date} at ${time_slot}`,
-          html: buildConfirmationEmail({
+          replyTo: fromEmail,
+          subject: confirmationSubject,
+          html: confirmationHtml,
+          text: buildConfirmationText({
             student_name,
-            phone_number,
             booking_date,
             time_slot,
-            reason,
-            booking_id: booking.id,
             booking_number: booking.booking_number,
             cancelUrl,
           }),
         })
+
+        if (emailError) {
+          console.error("[bookings API] Confirmation email error:", emailError)
+        } else {
+          console.log("[bookings API] Confirmation email sent:", emailData?.id)
+        }
       } catch {
         // Email failure is non-blocking — booking is still created
       }
@@ -259,6 +276,35 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       { status: 500 }
     )
   }
+}
+
+function buildConfirmationText({
+  student_name,
+  booking_date,
+  time_slot,
+  booking_number,
+  cancelUrl,
+}: {
+  student_name: string
+  booking_date: string
+  time_slot: string
+  booking_number?: number
+  cancelUrl: string
+}) {
+  const displayRef = booking_number ? `#${booking_number}` : "your booking"
+  return [
+    `Hi ${student_name},`,
+    "",
+    "Your booking at Room 209E Armes, SSA Lounge has been confirmed.",
+    `Date: ${booking_date}`,
+    `Time: ${time_slot} (1 hour)`,
+    `Booking reference: ${displayRef}`,
+    "",
+    "Please show this email at the SSA window to get the study room key.",
+    "Reminder: Please do not leave the study room key inside the office — you may get locked out.",
+    "",
+    `To cancel your booking, use this link: ${cancelUrl}`,
+  ].join("\\n")
 }
 
 function buildConfirmationEmail({
