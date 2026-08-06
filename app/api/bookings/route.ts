@@ -220,11 +220,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     // Send confirmation email via Resend
     if (process.env.RESEND_API_KEY) {
       try {
-        const origin =
-          process.env.NEXT_PUBLIC_APP_URL ||
-          req.headers.get("origin") ||
-          "http://localhost:3000"
-        const cancelUrl = `${origin}/cancel?bookingid=${booking.cancellation_token}`
+        // Use explicit app URL env var, then Vercel's system production URL, then request host
+        const productionUrl = process.env.NEXT_PUBLIC_APP_URL ||
+          (process.env.VERCEL_PROJECT_PRODUCTION_URL
+            ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+            : null) ||
+          (req.headers.get("host")
+            ? `https://${req.headers.get("host")}`
+            : "http://localhost:3000")
+        const cancelUrl = `${productionUrl}/cancel?bookingid=${booking.cancellation_token}`
         const resend = new Resend(process.env.RESEND_API_KEY)
         const fromEmail =
           process.env.RESEND_FROM_EMAIL || "SSA Study Room <onboarding@resend.dev>"
@@ -243,7 +247,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         const { data: emailData, error: emailError } = await resend.emails.send({
           from: fromEmail,
           to: student_email,
-          replyTo: fromEmail,
           subject: confirmationSubject,
           html: confirmationHtml,
           text: buildConfirmationText({
