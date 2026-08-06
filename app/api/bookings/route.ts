@@ -220,29 +220,49 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     // Send confirmation email via Resend
     if (process.env.RESEND_API_KEY) {
       try {
-        const origin =
-          process.env.NEXT_PUBLIC_APP_URL ||
-          req.headers.get("origin") ||
-          "http://localhost:3000"
-        const cancelUrl = `${origin}/cancel?bookingid=${booking.cancellation_token}`
+        // Use explicit app URL env var, then Vercel's system production URL, then request host
+        const productionUrl = process.env.NEXT_PUBLIC_APP_URL ||
+          (process.env.VERCEL_PROJECT_PRODUCTION_URL
+            ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+            : null) ||
+          (req.headers.get("host")
+            ? `https://${req.headers.get("host")}`
+            : "http://localhost:3000")
+        const cancelUrl = `${productionUrl}/cancel?bookingid=${booking.cancellation_token}`
         const resend = new Resend(process.env.RESEND_API_KEY)
         const fromEmail =
           process.env.RESEND_FROM_EMAIL || "SSA Study Room <onboarding@resend.dev>"
-        await resend.emails.send({
+        const confirmationSubject = `Booking Confirmed – Room 209E Armes on ${booking_date} at ${time_slot}`
+        const confirmationHtml = buildConfirmationEmail({
+          student_name,
+          phone_number,
+          booking_date,
+          time_slot,
+          reason,
+          booking_id: booking.id,
+          booking_number: booking.booking_number,
+          cancelUrl,
+        })
+
+        const { data: emailData, error: emailError } = await resend.emails.send({
           from: fromEmail,
           to: student_email,
-          subject: `Booking Confirmed – Room 209E Armes on ${booking_date} at ${time_slot}`,
-          html: buildConfirmationEmail({
+          subject: confirmationSubject,
+          html: confirmationHtml,
+          text: buildConfirmationText({
             student_name,
-            phone_number,
             booking_date,
             time_slot,
-            reason,
-            booking_id: booking.id,
             booking_number: booking.booking_number,
             cancelUrl,
           }),
         })
+
+        if (emailError) {
+          console.error("[bookings API] Confirmation email error:", emailError)
+        } else {
+          console.log("[bookings API] Confirmation email sent:", emailData?.id)
+        }
       } catch {
         // Email failure is non-blocking — booking is still created
       }
@@ -259,6 +279,35 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       { status: 500 }
     )
   }
+}
+
+function buildConfirmationText({
+  student_name,
+  booking_date,
+  time_slot,
+  booking_number,
+  cancelUrl,
+}: {
+  student_name: string
+  booking_date: string
+  time_slot: string
+  booking_number?: number
+  cancelUrl: string
+}) {
+  const displayRef = booking_number ? `#${booking_number}` : "your booking"
+  return [
+    `Hi ${student_name},`,
+    "",
+    "Your booking at Room 209E Armes, SSA Lounge has been confirmed.",
+    `Date: ${booking_date}`,
+    `Time: ${time_slot} (1 hour)`,
+    `Booking reference: ${displayRef}`,
+    "",
+    "Please show this email at the SSA window to get the study room key.",
+    "Reminder: Please do not leave the study room key inside the office — you may get locked out.",
+    "",
+    `To cancel your booking, use this link: ${cancelUrl}`,
+  ].join("\n")
 }
 
 function buildConfirmationEmail({
